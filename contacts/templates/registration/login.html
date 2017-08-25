@@ -1,0 +1,50 @@
+{% load static %}
+
+<html lang="en-us" >
+<head>
+<title>Log in | My contact app</title>
+<link rel="stylesheet" href="{% static 'css\login.css' %}" type="text/css">
+<link rel="stylesheet" type="text/css" href="/static/admin/css/login.css" />
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,700,900&amp;subset=cyrillic-ext" rel="stylesheet">
+</head>
+
+<body class=" login"
+  data-admin-utc-offset="0">
+<!-- Container -->
+<div id="container">
+    <!-- Header -->
+    <div id="header">
+<!--       <ul class="nav navbar-nav navbar-right"> -->
+<!--         <div id="branding"> -->
+          <h1 id="site-name"><a href="/login/">Login Form</a> <a id="signup_url" href="/sign-up/">SignUp</a></h1>
+<!--         </div> -->
+<!--         <li><a href="#"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li> -->
+    </div>
+    <!-- END Header -->
+
+<!-- Content -->
+<div id="content" class="colM">
+  {% if form.errors %}
+    <p class=errornote>Your username and password didn't match. Please try again.</p>
+    {% endif %}
+  <div id="content-main">
+    
+    <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+        <table>
+        <tr>
+            <td>{{ form.username.label_tag }}</td>
+            <td>{{ form.username }}</td>
+        </tr>
+        <tr>
+            <td>{{ form.password.label_tag }}</td>
+            <td>{{ form.password }}</td>
+        </tr>
+        </table>
+            <div class="button-wrapper">
+            <input type="submit" value="login" />
+            <input type="hidden" name="next" value="{{ next }}" />
+            <a id="recovery_url" href="/password_reset/">Password recovery</a>
+            </div>
+    </form>

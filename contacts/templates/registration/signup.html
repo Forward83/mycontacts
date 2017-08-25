@@ -1,0 +1,27 @@
+{% extends 'contacts/base.html' %}
+
+{% block content %}
+    <div class="container-fluid">
+          <h2>Sign up</h2>
+              <form method="post">
+                {% csrf_token %}
+              <ul class="form-style-1">
+              {% for field in form %}
+               <li>
+               <div class="block">
+                    {{ field.label_tag }}
+                    {{ field.errors }}
+                    {{ field }}
+                    {% if field.help_text %}
+                     {% autoescape off %}
+                         <span id="help_text">{{ field.help_text}} </span>
+                        {% endautoescape %}
+                    {% endif %}
+               </div>
+               </li>
+              {% endfor %}
+              </ul>
+                <button type="submit">Sign up</button>
+              </form>
+    </div>
+{% endblock %}

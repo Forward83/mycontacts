@@ -1,0 +1,14 @@
+<div class="col-md-2">
+    <ul class="nav nav-pills nav-stacked">
+        {%  if count %}
+            <li role="presentation"><a href="/">Contacts ({{ count }})</a></li>
+        {% else %}
+            <li role="presentation"><a href="/">Contacts</a></li>
+        {% endif %}
+      <li role="presentation"><a href="#">Dublicates</a></li>
+      <li class="nav-divider"></li>
+      <li role="presentation"><a href="{% url 'new_contact' %}">New Contacts</a></li>
+      <li role="presentation"><a href="#">Import Contacts</a></li>
+      <li role="presentation"><a href="{% url 'export_contact' %}">Export Contacts</a></li>
+    </ul>
+</div>

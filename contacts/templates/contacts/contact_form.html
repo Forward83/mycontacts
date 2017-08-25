@@ -1,0 +1,58 @@
+{% extends 'contacts/base.html' %}
+
+{% block content %}
+    <div class="container-fluid">
+    {% include 'contacts/sidebar.html'%}
+      <div row>
+        <div class="col-md-2">
+            {% if photo_form.instance.photo.name %}
+            <img src="{{photo_form.instance.photo.url}}" height="125" width="95"/>
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            <form method="POST" action="." enctype="multipart/form-data">
+            {% csrf_token %}
+            <ul class="form-style-1">
+                <li><label>Full Name <span class="required">*</span></label>
+                     {{form.firstname.errors}}
+                     {{form.firstname}}&nbsp;
+                     {{form.secondname.errors}}
+                     {{form.secondname}}&nbsp;
+                     {{form.lastname.errors}}
+                     {{form.lastname}}&nbsp;
+                </li>
+                <li><label> {{form.mobile.label}} <span class="required">*</span></label>
+                    {{form.mobile.errors}}
+                    {{form.mobile}}
+                    <p id="help_text">{{ form.mobile.help_text }} </p>
+                </li>
+                <li><label> {{form.home_phone.label}} </label>
+                    {{form.home_phone.errors}}
+                    {{form.home_phone}} 
+                </li>
+                <li>
+                    <label> {{form.address.label}} </label>
+                    {{form.address.errors}}
+                    {{form.address}}
+                <li><label> {{form.email.label}} </label>
+                    {{form.email.errors}}
+                    {{form.email}}
+                 </li>
+                 <li><label> {{photo_form.photo.label}} </label>
+                    {{photo_form.photo.errors}}
+                    {{photo_form.photo}}
+                 </li>
+                <li><label> {{form.star.label}} </label>
+                    {{form.star.errors}}
+                    {{form.star}}
+                </li>
+                <li>
+                <input type="submit" value="Submit" />
+                </li>
+            </ul>
+            </form>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
