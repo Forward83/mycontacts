@@ -24,10 +24,19 @@ CREATE USER 'mycontact'@'localhost' IDENTIFIED BY 'p@ssw0rd';
 GRANT ALL PRIVILEGES ON contacts.* TO 'mycontact'@'localhost';
 FLUSH PRIVILEGES;
 ```
-You can change parameters db_name, mysql user_name and password for it in contact\settings.py file.
-4. Create superuser, if you need access to admin part of project.
-```
-mysql.exe -u root -p contacts < contacts.sql
-```
+You can change parameters db_name, mysql user_name and password in contact\settings.py file.  
 
+4. Create superuser, if you need access to admin part of project. From project directory run:
+```
+python manage.py createsuperuser
+```
+5. Run built-in web server:
+```
+python manage.py runserver server:port  # localhost:8000 - default parameters
+```
+## Deployment
+To start application open your browser and enter: http://localhost:8000. You will be redirected to login/sign-up form, because your user database is empty (if you don't create superuser) and all content of the application requires authenticated user. You can create new user by this form or by using administration tool. Admin part of the app is available by: http://localhost:8000/admin.  
+
+After you authenticate, you will be able to make all actions to manage your contacts.  
+If you forgot your password, you can change it throught reset password link on login form. There will be generated massage __to your console with url you should follow__. 
 
