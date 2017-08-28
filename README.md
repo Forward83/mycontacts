@@ -38,5 +38,5 @@ python manage.py runserver server:port  # localhost:8000 - default parameters
 To start application open your browser and enter: http://localhost:8000. You will be redirected to login/sign-up form, because your user database is empty (if you don't create superuser) and all content of the application requires authenticated user. You can create new user by this form or by using administration tool. Admin part of the app is available by: http://localhost:8000/admin.  
 
 After you authenticate, you will be able to make all actions to manage your contacts.  
-If you forgot your password, you can change it throught reset password link on login form. There will be generated massage __to your console with url you should follow__. 
+If you forgot your password, you can change it by reset password link on login form. There will be generated massage with instructions __to your console with url you should follow__. 
 
