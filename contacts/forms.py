@@ -14,6 +14,15 @@ class UserSignUpForm(UserCreationForm):
     last_name = forms.CharField(max_length=20, required=False)
     email = forms.EmailField(required=True)
 
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        try:
+            usr = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return email
+        else:
+            raise forms.ValidationError('There is a User with such email. Please, enter another one')
+
     class Meta:
         model = User
         fields = ['username', 'password1', 'password2', 'first_name', 'last_name', 'email']
