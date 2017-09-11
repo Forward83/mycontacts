@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^new_contact/$', views.new_contact, name='new_contact'),
     url(r'^contact/(?P<pk>\d+)/remove/$', views.remove_contact, name='remove_contact'),
     url(r'^contact/export/$', views.export_contacts, name='export_contact'),
+    url(r'^contact/import/$', views.import_contacts, name='import_contact'),
     url(r'^contact/get_photos/$', views.get_photos, name='get_photos'),
     url(r'^login/$', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     url(r'^logout/$', auth_views.logout_then_login, name='logout'),

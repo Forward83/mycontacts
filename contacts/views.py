@@ -11,7 +11,7 @@ from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm
 from .models import Contact, ContactPhoto
 from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS
-from import_export.forms import ExportForm
+from import_export.forms import ExportForm, ImportForm
 from import_export.admin import ExportMixin
 from datetime import datetime
 import tablib
@@ -143,6 +143,21 @@ def export_contacts(request):
     else:
         form = ExportForm(formats)
     return render(request, 'contacts/export_form.html', {'form': form})
+
+def import_contacts(request):
+    formats = DEFAULT_FORMATS
+    if request.method == 'POST':
+        form = ImportForm(formats, request.POST, request.FILES)
+        if form.is_valid():
+            print('I am here')
+            file_format = formats[int(form.cleaned_data['input_format'])]()
+            filename = form.cleaned_data['input_file_name']
+            with open(filename, 'r') as fname:
+                dataset = file_format.create_dataset(fname)
+            print(dataset.dict)
+    else:
+        form = ImportForm(formats)
+    return render(request, 'contacts/import_form.html', {'form': form})
 
 
 def get_photos(request):

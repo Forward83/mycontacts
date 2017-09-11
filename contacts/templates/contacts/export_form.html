@@ -9,18 +9,6 @@
                 <h1>Export</h1>
                 <form action="" method="POST">
                     {% csrf_token %}
-{#                    <fieldset class="module aligned">#}
-{#                        <div class="form-row">#}
-{#                            <label for="id_file_format">Format:</label>#}
-{#                            <select name="file_format" required id="id_file_format">#}
-{#                                <option value="" selected>---</option>#}
-{#                                <option value="0">csv</option>#}
-{#                                <option value="1">xls</option>#}
-{#                                <option value="2">xlsx</option>#}
-{#                                <option value="7">html</option>#}
-{#                            </select>#}
-{#                        </div>#}
-{#                    </fieldset>#}
                     {%  for field in form %}
                     {{ field.label }}
                     {{ field.errors }}
