@@ -11,10 +11,10 @@ from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm
 from .models import Contact, ContactPhoto
 from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS
-from import_export.forms import ExportForm
+from import_export.forms import ExportForm, ImportForm
 from import_export.admin import ExportMixin
 from datetime import datetime
-import tablib
+from tablib import Dataset
 
 # Create your views here.
 
@@ -109,7 +109,7 @@ def new_contact(request):
         contact_photo_form = ContactPhotoForm()
     return render(request, 'contacts/contact_form.html', {'form': form, 'photo_form': contact_photo_form})
 
-
+@login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
     contact_photos = contact_obj.contactphoto_set.all()
@@ -122,6 +122,7 @@ def remove_contact(request, pk):
 
 
 # view for export contacts
+@login_required(login_url='/login/')
 def export_contacts(request):
     formats = DEFAULT_FORMATS
     if request.method == 'POST':
@@ -130,7 +131,8 @@ def export_contacts(request):
             file_format = formats[int(form.cleaned_data['file_format'])]()
             file_extension = file_format.get_extension()
             content_type = file_format.CONTENT_TYPE
-            contact_list = ContactResource().export()
+            queryset = Contact.objects.filter(owner=request.user)
+            contact_list = ContactResource().export(queryset)
             export_data = file_format.export_data(contact_list)
             _time = datetime.now().strftime('%Y-%m-%d')
             _model = ContactResource.Meta.model.__name__
@@ -143,6 +145,29 @@ def export_contacts(request):
     else:
         form = ExportForm(formats)
     return render(request, 'contacts/export_form.html', {'form': form})
+
+@login_required(login_url='/login/')
+def import_contacts(request):
+    formats = DEFAULT_FORMATS
+    if request.method == 'POST':
+        form = ImportForm(formats, request.POST, request.FILES)
+        if form.is_valid():
+            contact_resource = ContactResource()
+            dataset = Dataset()
+            # file_format = formats[int(form.cleaned_data['input_format'])]()
+            filename = form.cleaned_data['import_file']
+            imported_data = dataset.load(filename.read())
+            row_count = len(imported_data)
+            imported_data.append_col([request.user.id]*row_count, header='owner')
+            print('------', imported_data.dict, '----------')
+            result = contact_resource.import_data(imported_data, dry_run=True)
+            if not result.has_errors():
+                print('No errors')
+                contact_resource.import_data(imported_data, dry_run=False)
+                return redirect('contact_list')
+    else:
+        form = ImportForm(formats)
+    return render(request, 'contacts/import_form.html', {'form': form})
 
 
 def get_photos(request):
