@@ -136,5 +136,5 @@ THUMB_SIZE = (125, 125)
 #Maximum allowed photo size
 PHOTO_SIZE = 2*1024*1024
 #Default formats for import-export actions
-DEFAULT_FORMATS = (base_formats.CSV, base_formats.XLS, base_formats.XLSX, base_formats.HTML)
-
+DEFAULT_FORMATS_FOR_EXPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX, base_formats.HTML)
+DEFAULT_FORMATS_FOR_IMPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX)

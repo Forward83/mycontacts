@@ -10,10 +10,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm
 from .models import Contact, ContactPhoto
-from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS
+from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT
 from import_export.forms import ExportForm, ImportForm
 from import_export.admin import ExportMixin
 from datetime import datetime
+import csv
+from io import TextIOWrapper
 from tablib import Dataset
 
 # Create your views here.
@@ -124,13 +126,14 @@ def remove_contact(request, pk):
 # view for export contacts
 @login_required(login_url='/login/')
 def export_contacts(request):
-    formats = DEFAULT_FORMATS
+    formats = DEFAULT_FORMATS_FOR_EXPORT
     if request.method == 'POST':
         form = ExportForm(formats, request.POST)
         if form.is_valid():
             file_format = formats[int(form.cleaned_data['file_format'])]()
             file_extension = file_format.get_extension()
             content_type = file_format.CONTENT_TYPE
+            print(content_type)
             queryset = Contact.objects.filter(owner=request.user)
             contact_list = ContactResource().export(queryset)
             export_data = file_format.export_data(contact_list)
@@ -139,7 +142,7 @@ def export_contacts(request):
             filename = '%s-%s.%s' %(_model, _time, file_extension)
             print(filename)
             response = HttpResponse(export_data, content_type=content_type)
-            response.write(codecs.BOM_UTF8)
+            # response.write(codecs.BOM_UTF8)
             response['Content-Disposition'] = 'attachment; filename = %s' % filename
             return response
     else:
@@ -148,23 +151,36 @@ def export_contacts(request):
 
 @login_required(login_url='/login/')
 def import_contacts(request):
-    formats = DEFAULT_FORMATS
+    formats = DEFAULT_FORMATS_FOR_IMPORT
     if request.method == 'POST':
         form = ImportForm(formats, request.POST, request.FILES)
         if form.is_valid():
             contact_resource = ContactResource()
-            dataset = Dataset()
-            # file_format = formats[int(form.cleaned_data['input_format'])]()
-            filename = form.cleaned_data['import_file']
-            imported_data = dataset.load(filename.read())
+            file_format = formats[int(form.cleaned_data['input_format'])]()
+            if file_format.CONTENT_TYPE == 'text/csv':
+                filename = TextIOWrapper(request.FILES['import_file'].file, encoding='utf-8')
+                imported_data = file_format.create_dataset(filename.read())
+            else:
+                filename = request.FILES['import_file']
+                imported_data = file_format.create_dataset(filename.read())
+            print(imported_data)
             row_count = len(imported_data)
             imported_data.append_col([request.user.id]*row_count, header='owner')
-            print('------', imported_data.dict, '----------')
-            result = contact_resource.import_data(imported_data, dry_run=True)
-            if not result.has_errors():
-                print('No errors')
-                contact_resource.import_data(imported_data, dry_run=False)
-                return redirect('contact_list')
+            result = contact_resource.import_data(imported_data, dry_run=True, raise_errors=False)
+            total_qty = imported_data.height
+            del_inform = {}
+            if result.has_errors():
+                import_nums = list(range(imported_data.height))
+                for (num, errors) in result.row_errors():
+                    print(num, '---', len(errors))
+                    del_inform[num] = [error.error for error in errors]
+                    import_nums.remove(num-1)
+                imported_data = imported_data.subset(import_nums)
+            contact_resource.import_data(imported_data, dry_run=False)
+            success_qty = imported_data.height
+            error_qty = len(del_inform)
+            return render(request, 'contacts/import_form.html', {'errors': del_inform,
+                                                                   'statistics': (total_qty, success_qty, error_qty)})
     else:
         form = ImportForm(formats)
     return render(request, 'contacts/import_form.html', {'form': form})
