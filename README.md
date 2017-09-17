@@ -3,18 +3,20 @@ Django web application for management contact information: Project has the follo
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-### Prerequisites
-* python3
-* Django framework
-* Django import-export lib 
-* PIL lib
-* zipfile lib
-* mysql server 
-
+### Installation requirements
+If you are using Linux OS:
+```
+pip install -r requirements.txt (Python 2), or pip3 install -r requirements.txt (Python 3)
+```
+If you are using Windows OS:
+```
+python -m pip install -U pip setuptools
+```
 ### Installing
 To install application follow the following steps:  
 1. Clone this repository to local machine
-2. Import contacts.sql file to sql server
+2. Install packages from requirements.txt
+3. Import contacts.sql file to sql server
 ```
 mysql.exe -u root -p contacts < contacts.sql
 ```
