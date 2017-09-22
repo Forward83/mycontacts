@@ -7,7 +7,9 @@ from django.core.exceptions import ValidationError
 import imghdr
 
 #Validator for mobile number
-mobile_regex = RegexValidator(regex=r'^\+380\([0-9]{2}\)[0-9]{7}$', message="Phone number must be entered in the format: '+380(67)9999999'. Up to 15 digits allowed.", code='invalid_mobile')
+mobile_regex = RegexValidator(regex=r'^\+380\([0-9]{2}\)[0-9]{7}$',
+                              message="Phone number must be entered in the format: '+380(67)9999999'. Up to 15 digits allowed.",
+                              code='invalid_mobile')
 
 # Create your models here.
 class Profile(models.Model):
