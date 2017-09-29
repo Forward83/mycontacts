@@ -1,21 +1,25 @@
 from django.test import TestCase
-from .forms import ContactForm
-from .models import Contact
+from contacts.forms import ContactForm
+from contacts.models import Contact
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 # Create your tests here.
 
 # models tests
 class TestContactModel(TestCase):
-    def setUp(self):
-        self.user = User.objects.create(username='testuser', password='testpassword')
+
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create(username='testuser', password='testpassword')
 
     def test_mobile_validator(self):
+        user = User.objects.get(pk=1)
         correct_mobile = '+380(67)2162478'
         wrong_mobile = '+380672162478'
-        c1 = Contact(owner=self.user, firstname='test', secondname='test', lastname='test',
+        c1 = Contact(owner=user, firstname='test', secondname='test', lastname='test',
                      mobile=correct_mobile)
-        c2 = Contact(owner=self.user, firstname='sergii', secondname='victorovych', lastname='iukhymchuk',
+        c2 = Contact(owner=user, firstname='sergii', secondname='victorovych', lastname='iukhymchuk',
                                mobile=wrong_mobile)
         with self.assertRaises(ValidationError) as cm:
             c2.full_clean()
@@ -27,16 +31,11 @@ class TestContactModel(TestCase):
             self.fail("Unexpected Validation error during saving correct object")
 
     def test_str_overide(self):
-        c1 = Contact(owner=self.user, firstname='sergii', secondname='victorovych', lastname='iukhymchuk',
+        user = User.objects.get(pk=1)
+        c1 = Contact(owner=user, firstname='sergii', secondname='victorovych', lastname='iukhymchuk',
                                mobile='+380(67)2162478')
         self.assertEqual(c1.__str__(), "Contact: %s %s" % (c1.firstname, c1.lastname))
 
-    def tearDown(self):
-        del self.user
+class TestContactPhotoModel(TestCase):
 
-
-def form_testing(ConatctForm):
-    f=ConatctForm()
-    f.is_multipart()
-    pass
-    
+    def
