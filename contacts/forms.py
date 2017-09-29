@@ -55,7 +55,7 @@ class ContactPhotoForm(forms.ModelForm):
     def clean_photo(self):
         img = self.cleaned_data.get('photo', False)
         if img:
-            #Imagefield object can take different type, which depends on existence of the file
+            # Imagefield object can take different type, which depends on existence of the file
             try:
                 img_size = img._size
             except AttributeError:

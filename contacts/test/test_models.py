@@ -1,9 +1,10 @@
 from django.test import TestCase
-from contacts.forms import ContactForm
-from contacts.models import Contact
+from contacts.models import Contact, ContactPhoto
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+import os
+from contact.settings import BASE_DIR
 # Create your tests here.
 
 # models tests
@@ -36,6 +37,17 @@ class TestContactModel(TestCase):
                                mobile='+380(67)2162478')
         self.assertEqual(c1.__str__(), "Contact: %s %s" % (c1.firstname, c1.lastname))
 
-class TestContactPhotoModel(TestCase):
 
-    def
+# class TestContactPhotoModel(TestCase):
+#
+#     def setUpTestData(cls):
+#         user = User.objects.create(username='testuser', password='testpassword')
+#         Contact.objects.create(owner=user, firstname='test', secondname='test', lastname='test',
+#                      mobile='+380(67)2162478')
+#
+#     def test_create_thumbnail(self):
+#         user = User.objects.get(pk=1)
+#         contact = Contact.objects.get(pk=1)
+#         fpath = os.path.join(BASE_DIR,'contacts/fixtures/photos/test.photo.png')
+#         fname = os.path.basename(fpath)
+#         photo = SimpleUploadedFile()
