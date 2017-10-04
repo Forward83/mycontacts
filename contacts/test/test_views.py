@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from contacts.models import Contact
+from contacts.models import Contact, Profile
 
 class ContactListViewTest(TestCase):
 
@@ -75,11 +75,19 @@ class SignUpViewTest(TestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_profile_updated_after_user_creation(self):
-        pass
+        resp = self.client.post(reverse('sign-up'), {'username': 'test_user', 'password': 'cisco+123',
+                                                     'password1': 'cisco+123', 'first_name': 'test',
+                                                     'last_name': 'test', 'email': 'test@index.com'})
+        self.assertEqual(resp.status_code, 200)
+        user = User.objects.get(username='test_user')
+        profile = Profile.objects.get(user=user)
+        self.assertEqual(profile.first_name, 'test')
+        self.assertEqual(profile.last_name, 'test')
+        self.assertEqual(profile.email, 'test@index.com')
 
-    def test_user_logged_in_after_creation(self):
-        pass
-
-    def test_redirection_to_contact_list(self):
-        pass
+    # def test_user_logged_in_after_creation(self):
+    #     pass
+    #
+    # def test_redirection_to_contact_list(self):
+    #     pass
 
