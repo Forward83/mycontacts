@@ -67,3 +67,19 @@ class ContactListViewTest(TestCase):
         self.assertTrue('user_contacts' in resp.context)
         self.assertTrue('count' in resp.context)
         self.assertTrue('user_contacts' in resp.context)
+
+class SignUpViewTest(TestCase):
+
+    def test_response_status_sign_up_page(self):
+        resp = self.client.get(reverse('sign-up'))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_profile_updated_after_user_creation(self):
+        pass
+
+    def test_user_logged_in_after_creation(self):
+        pass
+
+    def test_redirection_to_contact_list(self):
+        pass
+

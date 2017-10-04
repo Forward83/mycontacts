@@ -23,7 +23,7 @@ from tablib import Dataset
 def sign_up(request):
     """
     User registration view. Create new User object, Profile object as well through post save signal.
-    After creation User is authenticated and loged in with redirecting to contact list page  
+    After creation User is authenticated and logged in with redirecting to contact list page  
     :param request: http request 
     :return: new user object, profile object and redirect to main page with new user
     """
@@ -31,7 +31,7 @@ def sign_up(request):
         form = UserSignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user.refresh_from_db()  #refresh related object in DB
+            user.refresh_from_db()  # refresh related object in DB
             user.profile.first_name = form.cleaned_data.get('first_name')
             user.profile.last_name = form.cleaned_data.get('last_name')
             user.profile.email = form.cleaned_data.get('email')
@@ -47,11 +47,10 @@ def sign_up(request):
 
 @login_required(login_url='/login/')
 def contact_list(request):
-    if request.user.is_authenticated():
-        user = request.user
-        user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'lastname')
-        user_contacts_last_thumb = [(contact, contact.contactphoto_set.first()) for contact in user_contacts]
-        contact_count = user_contacts.count()
+    user = request.user
+    user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'lastname')
+    user_contacts_last_thumb = [(contact, contact.contactphoto_set.first()) for contact in user_contacts]
+    contact_count = user_contacts.count()
     return render(request, 'contacts/main.html', {'user_contacts': user_contacts_last_thumb, 'count': contact_count,
                                                   'user': user})
 
