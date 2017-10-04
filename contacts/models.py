@@ -44,7 +44,8 @@ class Contact(models.Model):
     def __str__(self):
         return "Contact: %s %s" % (self.firstname, self.lastname)
 
-#Return seperate path directory for each user
+
+# Return separate path directory for each user
 def user_directory_path(instance, filename):
     return '{0}/{1}'.format(instance.contact.owner_id, filename)
 
@@ -97,15 +98,13 @@ class ContactPhoto(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        #Make thumbnail only if photo field was changed
-        # print(self.photo)
-        # print(self.__original_photo)
+        # Make thumbnail only if photo field was changed
         if self.photo != self.__original_photo:
             self.create_thumbnail()
-        force_update = False
-        if self.id:
-            force_update = True
-        super(ContactPhoto, self).save(force_update=force_update)
+        super(ContactPhoto, self).save()
+
+    # def delete(self, using=None, keep_parents=False):
+
 
 
 

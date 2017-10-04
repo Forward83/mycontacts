@@ -19,7 +19,7 @@ class ContactListViewTest(TestCase):
                 user = testuser1
             else:
                 user = testuser2
-            if i < num_of_contacts:
+            if i < num_of_star:
                 star = True
             firstname = secondname = lastname = 'test'+str(i)
             mobile = '+380(67)2162478'
@@ -47,12 +47,23 @@ class ContactListViewTest(TestCase):
         pass
 
     def test_correct_ordering(self):
-        pass
+        login = self.client.login(username='testuser1', password='testpassword1')
+        resp = self.client.get(reverse('contact_list'))
+        first_five = resp.context['user_contacts'][:5]
+        for contact, thumb in first_five:
+            self.assertTrue(contact.star)
+        contact_lastname=''
+        for contact, thumb in resp.context['user_contacts']:
+            if contact_lastname == '':
+                contact_lastname = contact.lastname
+            else:
+                self.assertTrue(contact_lastname < contact.lastname)
 
     def test_correct_template_and_context_usage(self):
-        pass
-
-
-
-
-
+        login = self.client.login(username='testuser1', password='testpassword1')
+        resp = self.client.get(reverse('contact_list'))
+        self.assertEqual(resp.context['user'].username, 'testuser1')
+        self.assertTemplateUsed(resp, 'contacts/main.html')
+        self.assertTrue('user_contacts' in resp.context)
+        self.assertTrue('count' in resp.context)
+        self.assertTrue('user_contacts' in resp.context)
