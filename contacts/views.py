@@ -20,6 +20,19 @@ from tablib import Dataset
 
 # Create your views here.
 
+def check_owner(view_func):
+    """
+    Decorator, which check if logged in user is owner of the requested object
+    """
+    def wrapper(*args, **kwargs):
+        user = args[0].user
+        contact = get_object_or_404(Contact, pk=kwargs['pk'])
+        if user.id == contact.owner_id:
+            return view_func(*args, **kwargs)
+        else:
+            return redirect('login')
+    return wrapper
+
 def sign_up(request):
     """
     User registration view. Create new User object, Profile object as well through post save signal.
@@ -55,6 +68,7 @@ def contact_list(request):
                                                   'user': user})
 
 
+@check_owner
 @login_required(login_url='/login/')
 def edit_contact(request, pk):
     """
@@ -106,6 +120,7 @@ def new_contact(request):
         contact_photo_form = ContactPhotoForm()
     return render(request, 'contacts/contact_form.html', {'form': form, 'photo_form': contact_photo_form})
 
+@check_owner
 @login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
