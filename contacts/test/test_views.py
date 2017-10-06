@@ -1,7 +1,9 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from contacts.models import Contact, Profile
+from contacts.models import Contact, Profile, ContactPhoto
+from unittest.mock import patch, MagicMock
+from contacts.views import sign_up
 
 class ContactListViewTest(TestCase):
 
@@ -43,9 +45,6 @@ class ContactListViewTest(TestCase):
             self.assertEqual(contact.owner, user)
             self.assertEqual(len(resp.context['user_contacts']), 15)
 
-    def test_each_contact_uses_last_loaded_photo(self):
-        pass
-
     def test_correct_ordering(self):
         login = self.client.login(username='testuser1', password='testpassword1')
         resp = self.client.get(reverse('contact_list'))
@@ -59,7 +58,7 @@ class ContactListViewTest(TestCase):
             else:
                 self.assertTrue(contact_lastname < contact.lastname)
 
-    def test_correct_template_and_context_usage(self):
+    def test_used_template_and_context_usage(self):
         login = self.client.login(username='testuser1', password='testpassword1')
         resp = self.client.get(reverse('contact_list'))
         self.assertEqual(resp.context['user'].username, 'testuser1')
@@ -70,24 +69,65 @@ class ContactListViewTest(TestCase):
 
 class SignUpViewTest(TestCase):
 
-    def test_response_status_sign_up_page(self):
+    def test_profile_created_after_user_creation(self):
+        user_accounts = User.objects.count()
+        profile_accounts = Profile.objects.count()
+        data = {'username': 'test_user', 'password1': 'cisco+123',
+                'password2': 'cisco+123', 'first_name': 'test',
+                'last_name': 'test', 'email': 'test@index.com'}
+        resp = self.client.post(reverse('sign-up'), data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, reverse('contact_list'))
+        self.assertEqual(User.objects.count(), user_accounts+1)
+        self.assertEqual(Profile.objects.count(), profile_accounts + 1)
+
+    def test_status_code_used_template(self):
         resp = self.client.get(reverse('sign-up'))
         self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'registration/signup.html')
 
-    def test_profile_updated_after_user_creation(self):
-        resp = self.client.post(reverse('sign-up'), {'username': 'test_user', 'password': 'cisco+123',
-                                                     'password1': 'cisco+123', 'first_name': 'test',
-                                                     'last_name': 'test', 'email': 'test@index.com'})
-        self.assertEqual(resp.status_code, 200)
-        user = User.objects.get(username='test_user')
-        profile = Profile.objects.get(user=user)
-        self.assertEqual(profile.first_name, 'test')
-        self.assertEqual(profile.last_name, 'test')
-        self.assertEqual(profile.email, 'test@index.com')
+class EditContactViewTest(TestCase):
 
-    # def test_user_logged_in_after_creation(self):
-    #     pass
-    #
-    # def test_redirection_to_contact_list(self):
-    #     pass
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create_user(username='testuser1', password='testpassword1')
+        user1.save()
+        user2 = User.objects.create_user(username='testuser2', password='testpassword2')
+        user2.save()
+        contact = Contact.objects.create(owner=user2, firstname='test1', secondname='test', lastname='test',
+                mobile='+380(67)2162478')
+        contact_photo = ContactPhoto.objects.create(contact=contact)
+
+    def test_call_view_redirect_anonymous_user(self):
+        contact = Contact.objects.last()
+        resp = self.client.get(reverse('edit_contact', kwargs={'pk': contact.id}))
+        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, '%s?next=%s' % (reverse('login'),
+                                                    (reverse('edit_contact', kwargs={'pk': contact.id}))))
+
+    def test_logged_in_user_wrong_contact(self):
+        self.client.login(username='testuser1', password='testpassword1')
+        contact = Contact.objects.get(firstname='test1')
+        resp = self.client.get(reverse('edit_contact', kwargs={'pk': contact.id}))
+        self.assertEqual(resp.status_code, 404)
+        resp = self.client.post(reverse('edit_contact', kwargs={'pk': contact.id}))
+        self.assertEqual(resp.status_code, 404, 'Contact owner doesn\'t match with current user')
+        contact = Contact.objects.last()
+        resp = self.client.post(reverse('edit_contact', kwargs={'pk': contact.id+1}))
+        self.assertEqual(resp.status_code, 404, 'Contact with %s id doesn\'t exist' % contact.id+1)
+
+    def test_logged_in_user_correct_contact(self):
+        pass
+
+    def test_photo_clear_in_response_context(self):
+        pass
+
+    def test_correct_template_used(self):
+        pass
+
+    def test_redirect_after_submit(self):
+        pass
+
+
+
 

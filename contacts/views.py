@@ -66,8 +66,6 @@ def edit_contact(request, pk):
     """
     contact_obj = get_object_or_404(Contact, pk=pk)
     contact_photo, created = ContactPhoto.objects.get_or_create(contact=contact_obj)
-    if created:
-        contact_photo.active = True
     if request.method == "POST":
         contact_form = ContactForm(request.POST, instance=contact_obj)
         contact_photo_form = ContactPhotoForm(request.POST, request.FILES, instance=contact_photo)
@@ -79,8 +77,6 @@ def edit_contact(request, pk):
         if contact_form.is_valid() and contact_photo_form.is_valid():
             fname = contact_photo_form.cleaned_data.get('photo', False)
             # If there is uploaded file, update current row to 'active=False' and then create bound form with new instance
-            if fname:
-                contact_photo.active = False
             contact_form.save()
             contact_photo_form.save()
             return redirect('contact_list')
