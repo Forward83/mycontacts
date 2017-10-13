@@ -4,21 +4,27 @@
 {% block content %}
     <div class="container-fluid">
     {% include 'contacts/sidebar.html'%}
-      <div row>
-          <div id="content" class="colM">
-                <h1>Export</h1>
-                <form action="" method="POST">
-                    {% csrf_token %}
-                    {%  for field in form %}
-                    {{ field.label }}
-                    {{ field.errors }}
-                    {{ field }}
-                    {% endfor %}
-                    <div class="submit-row">
-                         <input type="submit" class="default" value="Submit">
-                    </div>
-                </form>
-
+        <div class="col-md-10">
+          <div row>
+              <div id="content" class="colM">
+                    <h1>Export</h1>
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                            <fieldset class="module aligned">
+                                {%  for field in form %}
+                                <div class="form-row">
+                                    {{ field.label }}
+                                    {{ field.errors }}
+                                    {{ field }}
+                                </div>
+                                {% endfor %}
+                            </fieldset>
+                        <div class="submit-row">
+                             <input type="submit" class="default" value="Submit">
+                        </div>
+                    </form>
+              </div>
           </div>
-      </div>
+        </div>
+    </div>
 {% endblock %}

@@ -4,47 +4,56 @@
 {% block content %}
     <div class="container-fluid">
     {% include 'contacts/sidebar.html'%}
-      <div row>
-          <div id="content" class="colM">
-                <h1>Import</h1>
-                <form action="" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <p>
-                        This importer will import the following fields:
-                        <code>
-                            owner, id, firstname, secondname, lastname, mobile, home_phone, address, email, star
-                        </code>
-                    </p>
-                    {%  for field in form %}
-                    {{ field.label }}
-                    {{ field.errors }}
-                    {{ field }}
-                    {% endfor %}
-                    <div class="submit-row">
-                         <input type="submit" class="default" value="Submit">
-                    </div>
-                </form>
-                {% if statistics %}
-                    <h2>
-                    Operation statistic:
-                    </h2>
-                    <p>
-                        You try to import {{ statistics.0 }} contacts. {{ statistics.1 }} were imported successfully,
-                        {{ statistics.2 }} with errors
-                    </p>
-                {% endif %}
-                {% if errors %}
-                    <h2>
-                    Errors:
-                    </h2>
-                    <ul>
-                        {% for num, error in errors.items %}
-                        <li>
-                            Line number {{ num }} - {{ error }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-          </div>
-      </div>
+        <div class="col-md-10">
+              <div row>
+                  <div id="content" class="colM">
+                        <h1>Import</h1>
+                        <form action="" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <p>
+                                This importer require you point in the file following fields:
+                                <code>
+                                    id (empty column), firstname*, secondname*, lastname*, mobile*, home_phone, address, email, star
+                                </code>
+                            <p> * - required fields </p>
+                        <fieldset class="module aligned">
+                            {%  for field in form %}
+                                <div class="form-row">
+                                    <label>
+                                    {{ field.label }}
+                                    </label>
+                                    {{ field.errors }}
+                                    {{ field }}
+                                </div>
+                            {% endfor %}
+                        </fieldset>
+                            <div class="submit-row">
+                                 <input type="submit" class="default" value="Submit">
+                            </div>
+                        </form>
+                        {% if statistics %}
+                            <h2>
+                            Operation statistic:
+                            </h2>
+                            <p>
+                                You try to import {{ statistics.0 }} contacts. {{ statistics.1 }} were imported successfully,
+                                {{ statistics.2 }} with errors
+                            </p>
+                        {% endif %}
+                        {% if errors %}
+                            <h2>
+                            Errors:
+                            </h2>
+                            <ul>
+                                {% for num, error in errors.items %}
+                                <li>
+                                    Line number {{ num }} - {{ error }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                  </div>
+              </div>
+        </div>
+    </div>
 {% endblock %}

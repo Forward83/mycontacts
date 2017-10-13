@@ -67,7 +67,7 @@ class ContactPhoto(models.Model):
         self.__original_photo = self.photo
 
     def __str__(self):
-        return "Contact: %s %s_%s" % (self.contact.firstname, self.contact.lastname, self.photo.name)
+        return "Contact: %s %s %s" % (self.contact.firstname, self.contact.lastname, self.photo.name)
 
     def create_thumbnail(self):
         if not self.photo:

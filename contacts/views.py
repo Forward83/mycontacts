@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.core.urlresolvers import reverse
 from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm
 from .models import Contact, ContactPhoto
@@ -20,17 +21,19 @@ from tablib import Dataset
 
 # Create your views here.
 
-def check_owner(view_func):
+def check_owner(view_func, redirect_url_name='login'):
     """
-    Decorator, which check if logged in user is owner of the requested object
+    Decorator, which check if logged in user is owner of the requested object. If False, request is redirected to login
+    page with next = request url
     """
     def wrapper(*args, **kwargs):
-        user = args[0].user
+        request = args[0]
+        user = request.user
         contact = get_object_or_404(Contact, pk=kwargs['pk'])
-        if user.id == contact.owner_id:
+        if user == contact.owner:
             return view_func(*args, **kwargs)
         else:
-            return redirect('login')
+            return redirect('%s?next=%s' % (reverse(redirect_url_name), request.path))
     return wrapper
 
 def sign_up(request):
@@ -69,7 +72,7 @@ def contact_list(request):
 
 
 @check_owner
-@login_required(login_url='/login/')
+# @login_required(login_url='/login/')
 def edit_contact(request, pk):
     """
     This view creates bounded Modelforms: Contact and ContactPhoto based on Contact pk parameter. It changes contact 
@@ -121,7 +124,7 @@ def new_contact(request):
     return render(request, 'contacts/contact_form.html', {'form': form, 'photo_form': contact_photo_form})
 
 @check_owner
-@login_required(login_url='/login/')
+# @login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
     contact_photos = contact_obj.contactphoto_set.all()
@@ -131,7 +134,6 @@ def remove_contact(request, pk):
             photo.thumbnail.delete()
     contact_obj.delete()
     return redirect('contact_list')
-
 
 # view for export contacts
 @login_required(login_url='/login/')

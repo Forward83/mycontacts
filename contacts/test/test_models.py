@@ -3,6 +3,7 @@ from contacts.models import Contact, ContactPhoto, user_directory_path
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+import shutil
 from django.core.files import File
 import os
 from contact.settings import BASE_DIR, MEDIA_ROOT
@@ -13,7 +14,7 @@ class TestContactModel(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        User.objects.create(username='testuser', password='testpassword')
+        User.objects.create_user(username='testuser', password='testpassword')
 
     def test_mobile_validator(self):
         user = User.objects.get(pk=1)
@@ -55,17 +56,15 @@ class TestContactPhotoModel(TestCase):
         fpath = os.path.join(BASE_DIR,'contacts/fixtures/photos/test_photo.png')
         fpath = os.path.normpath(fpath)
         fname = os.path.basename(fpath)
-        fh = open(fpath, 'rb')
-        photo = SimpleUploadedFile(fname, fh.read())
-        contact_photo.photo = photo
-        contact_photo.save()
-        expcted_thumb_path = os.path.join(MEDIA_ROOT, user_directory_path(contact_photo, 'test_photo_thumbnail.png'))
+        with open(fpath, 'rb') as fh:
+            photo = SimpleUploadedFile(fname, fh.read())
+            contact_photo.photo = photo
+            contact_photo.save()
+        expected_thumb_path = os.path.join(MEDIA_ROOT, user_directory_path(contact_photo, 'test_photo_thumbnail.png'))
         thumb_path = ContactPhoto.objects.get(contact=contact).thumbnail.path
-        self.assertEqual(os.path.normpath(expcted_thumb_path), os.path.normpath(thumb_path))
+        self.assertEqual(os.path.normpath(expected_thumb_path), os.path.normpath(thumb_path))
 
     def tearDown(self):
         user = User.objects.get(username='testuser')
-        test_file_path = os.path.join(MEDIA_ROOT, '%s/test_photo.png' % user.id)
-        test_thumb_file_path = os.path.join(MEDIA_ROOT, '%s/test_photo_thumbnail.png' % user.id)
-        os.remove(os.path.normpath(test_file_path))
-        os.remove(os.path.normpath(test_thumb_file_path))
+        folder_path = '{}/{}'.format(MEDIA_ROOT, user.id)
+        shutil.rmtree(os.path.normpath(folder_path))
