@@ -197,40 +197,39 @@ def import_contacts(request):
         form = ImportForm(formats)
     return render(request, 'contacts/import_form.html', {'form': form})
 
-
-def get_photos(request):
-    # Files (local path) to put in the .zip
-    photo_list = ContactPhotoResource().export()
-    line = str(photo_list.csv)
-    line = "\n".join(line.splitlines()[1:])
-
-    # relative to MEDIA_ROOT filepathes
-    filenames_rel = [row for row in line.split('\n') if row]
-    # list of absolute pathes
-    filenames = [os.path.join(MEDIA_ROOT, fpath) for fpath in filenames_rel]
-    zip_subdir = "photo"
-    zip_filename = "%s.zip" % zip_subdir
-
-    # Open ByteIO to grab in-memory ZIP contents
-    b = BytesIO()
-
-    # The zip compressor
-    zf = zipfile.ZipFile(b, "w")
-
-    for fpath in filenames:
-        # Calculate path for file in zip
-        fdir, fname = os.path.split(fpath)
-        zip_path = os.path.join(zip_subdir, fname)
-
-        # Add file, at correct path
-        zf.write(fpath, zip_path)
-
-    # Must close zip for all contents to be written
-    zf.close()
-
-    # Grab ZIP file from in-memory, make response with correct MIME-type
-    resp = HttpResponse(b.getvalue(), content_type="application/x-zip-compressed")
-    # ..and correct content-disposition
-    resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
-    resp['Content-length'] = b.tell()
-    return resp
+# def get_photos(request):
+#     # Files (local path) to put in the .zip
+#     photo_list = ContactPhotoResource().export()
+#     line = str(photo_list.csv)
+#     line = "\n".join(line.splitlines()[1:])
+#
+#     # relative to MEDIA_ROOT filepathes
+#     filenames_rel = [row for row in line.split('\n') if row]
+#     # list of absolute pathes
+#     filenames = [os.path.join(MEDIA_ROOT, fpath) for fpath in filenames_rel]
+#     zip_subdir = "photo"
+#     zip_filename = "%s.zip" % zip_subdir
+#
+#     # Open ByteIO to grab in-memory ZIP contents
+#     b = BytesIO()
+#
+#     # The zip compressor
+#     zf = zipfile.ZipFile(b, "w")
+#
+#     for fpath in filenames:
+#         # Calculate path for file in zip
+#         fdir, fname = os.path.split(fpath)
+#         zip_path = os.path.join(zip_subdir, fname)
+#
+#         # Add file, at correct path
+#         zf.write(fpath, zip_path)
+#
+#     # Must close zip for all contents to be written
+#     zf.close()
+#
+#     # Grab ZIP file from in-memory, make response with correct MIME-type
+#     resp = HttpResponse(b.getvalue(), content_type="application/x-zip-compressed")
+#     # ..and correct content-disposition
+#     resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+#     resp['Content-length'] = b.tell()
+#     return resp

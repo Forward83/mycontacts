@@ -3,15 +3,21 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
+from import_export.forms import ExportForm
+from import_export.formats import base_formats
 from contacts.models import Contact, Profile, ContactPhoto, user_directory_path
 from django.urls import resolve
-from contacts.views import new_contact, sign_up, remove_contact
+from contacts.views import new_contact, sign_up, remove_contact, export_contacts, import_contacts
 from contacts.forms import ContactForm, ContactPhotoForm
 from django.core.files.uploadedfile import SimpleUploadedFile
-from contact.settings import BASE_DIR, MEDIA_ROOT
+from contact.settings import BASE_DIR, MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT
 from contacts.forms import ContactForm, ContactPhotoForm
-import os
+from datetime import datetime
+import os, io
 import shutil
+from html.parser import HTMLParser
+import csv
+from bs4 import BeautifulSoup
 
 class ContactListViewTest(TestCase):
 
@@ -361,6 +367,197 @@ class RemoveContactViewTest(TestCase):
         folder_path = '{}/{}'.format(MEDIA_ROOT, self.user.id)
         if os.path.exists(folder_path):
             shutil.rmtree(os.path.normpath(folder_path))
+
+class ExportContactViewTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.user2 = User.objects.create_user(username='testuser2', password='password2')
+        self.client.login(username='testuser', password='password')
+        self.url = reverse('export_contact')
+
+    def test_response_status_for_logged_in_user(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_response_status_for_anonymous_user(self):
+        self.client.logout()
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 302)
+        login_url = reverse('login')
+        self.assertRedirects(resp, '{}?next={}'.format(login_url, self.url))
+
+    def test_correct_view_used(self):
+        view = resolve(self.url)
+        self.assertEqual(view.func, export_contacts)
+
+    def test_correct_template_used(self):
+        resp = self.client.get(self.url)
+        self.assertTemplateUsed(resp, 'contacts/export_form.html')
+
+    def test_csrf_token_in_response(self):
+        resp = self.client.get(self.url)
+        self.assertContains(resp, 'csrfmiddlewaretoken')
+
+    def test_csv_export_successful(self):
+        # Test checks content disposition, filename, file exist and number of rows for CSV content type
+        file_format = base_formats.CSV()
+        num_of_contacts = 10
+        star = False
+        mobile = '+380(67)2162478'
+        for i in range(num_of_contacts):
+            firstname = secondname = lastname = 'test' + str(i)
+            Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
+                                   mobile=mobile, star=star)
+        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123', lastname='test123',
+                              mobile=mobile, star=star)
+        _time = datetime.now().strftime('%Y-%m-%d')
+        _model = 'Contact'
+        file_ext = 'csv'
+        filename = '{}-{}.{}'.format(_model, _time, file_ext)
+        _content = 'attachment; filename = %s' % filename
+        resp = self.client.post(self.url, {'file_format': 0})
+        self.assertEqual(resp.get('Content-Disposition'), _content)
+        exported_data = resp.content.decode('utf-8')
+        exported_data = base_formats.CSV.create_dataset(file_format, exported_data)
+        self.assertEqual(exported_data.height, 10)
+        self.assertFalse(user2_contact.id in exported_data['id'])
+
+    def test_xls_export_successful(self):
+        file_format = base_formats.XLS()
+        num_of_contacts = 10
+        star = False
+        mobile = '+380(67)2162478'
+        for i in range(num_of_contacts):
+            firstname = secondname = lastname = 'test' + str(i)
+            Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
+                                   mobile=mobile, star=star)
+        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123', lastname='test123',
+                              mobile=mobile, star=star)
+        _time = datetime.now().strftime('%Y-%m-%d')
+        _model = 'Contact'
+        file_ext = 'xls'
+        filename = '{}-{}.{}'.format(_model, _time, file_ext)
+        _content = 'attachment; filename = %s' % filename
+        resp = self.client.post(self.url, {'file_format': 1})
+        self.assertEqual(resp.get('Content-Disposition'), _content)
+        exported_data = resp.content
+        exported_data = base_formats.XLS.create_dataset(file_format, exported_data)
+        self.assertEqual(exported_data.height, 10)
+        self.assertFalse(user2_contact.id in exported_data['id'])
+
+    def test_xlsx_export_successful(self):
+        file_format = base_formats.XLSX()
+        num_of_contacts = 10
+        star = False
+        mobile = '+380(67)2162478'
+        for i in range(num_of_contacts):
+            firstname = secondname = lastname = 'test' + str(i)
+            Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
+                                   mobile=mobile, star=star)
+        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123', lastname='test123',
+                              mobile=mobile, star=star)
+        _time = datetime.now().strftime('%Y-%m-%d')
+        _model = 'Contact'
+        file_ext = 'xlsx'
+        filename = '{}-{}.{}'.format(_model, _time, file_ext)
+        _content = 'attachment; filename = %s' % filename
+        resp = self.client.post(self.url, {'file_format': 2})
+        self.assertEqual(resp.get('Content-Disposition'), _content)
+        exported_data = resp.content
+        exported_data = base_formats.XLSX.create_dataset(file_format, exported_data)
+        self.assertEqual(exported_data.height, 10)
+        self.assertFalse(user2_contact.id in exported_data['id'])
+
+    def test_html_export_successful(self):
+
+        num_of_contacts = 10
+        star = False
+        mobile = '+380(67)2162478'
+        for i in range(num_of_contacts):
+            firstname = secondname = lastname = 'test' + str(i)
+            Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
+                                   mobile=mobile, star=star)
+        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123', lastname='test123',
+                              mobile=mobile, star=star)
+        _time = datetime.now().strftime('%Y-%m-%d')
+        _model = 'Contact'
+        file_ext = 'html'
+        filename = '{}-{}.{}'.format(_model, _time, file_ext)
+        _content = 'attachment; filename = %s' % filename
+        resp = self.client.post(self.url, {'file_format': 3})
+        self.assertEqual(resp.get('Content-Disposition'), _content)
+        exported_data = resp.content.decode('utf-8')
+        soup = BeautifulSoup(exported_data, 'html.parser')
+        rows = soup('tr')
+        data = soup('td')
+        _val = [cell.string for cell in data]
+        self.assertFalse(user2_contact.id in _val)
+        self.assertEqual(len(rows), 11)
+
+class ImportContactViewTest(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        user1 = User.objects.create_user(username='testuser', password='password')
+        user2 = User.objects.create_user(username='testuser2', password='password2')
+        num_of_contacts = 10
+        star = False
+        mobile = '+380(67)2162478'
+        for i in range(num_of_contacts):
+            firstname = secondname = lastname = 'test' + str(i)
+            Contact.objects.create(owner=user1, firstname=firstname, secondname=secondname, lastname=lastname,
+                                   mobile=mobile, star=star)
+        Contact.objects.create(owner=user2, firstname='test10', secondname='test10', lastname='test10',
+                               mobile='+380(67)2162478', star='False')
+
+    def test_response_status_for_logged_in_user(self):
+        self.client.login(username='testuser', password='password')
+        url = reverse('import_contact')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_response_status_for_anonymous_user(self):
+        url = reverse('import_contact')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 302)
+        login_url = reverse('login')
+        self.assertRedirects(resp, '{}?next={}'.format(login_url, url))
+
+    def test_correct_view_used(self):
+        url = reverse('import_contact')
+        view = resolve(url)
+        self.assertEqual(view.func, import_contacts)
+
+    def test_correct_template_used(self):
+        self.client.login(username='testuser', password='password')
+        url = reverse('import_contact')
+        resp = self.client.get(url)
+        self.assertTemplateUsed(resp, 'contacts/import_form.html')
+
+    def test_csrf_token_in_response(self):
+        self.client.login(username='testuser', password='password') 
+        url = reverse('import_contact')
+        resp = self.client.get(url)
+        self.assertContains(resp, 'csrfmiddlewaretoken')
+
+    def test_csv_import_successful(self):
+        pass
+
+    def test_owner_for_imported_csv_data(self):
+        pass
+
+    def test_xls_import_successful(self):
+        pass
+
+    def test_owner_for_imported_xls_data(self):
+        pass
+
+    def test_xlsx_import_successful(self):
+        pass
+
+    def test_owner_for_imported_xlsx_data(self):
+        pass
 
 
 
