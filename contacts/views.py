@@ -175,7 +175,6 @@ def import_contacts(request):
             else:
                 filename = request.FILES['import_file']
                 imported_data = file_format.create_dataset(filename.read())
-            print(imported_data)
             row_count = len(imported_data)
             imported_data.append_col([request.user.id]*row_count, header='owner')
             result = contact_resource.import_data(imported_data, dry_run=True, raise_errors=False)
@@ -184,7 +183,6 @@ def import_contacts(request):
             if result.has_errors():
                 import_nums = list(range(imported_data.height))
                 for (num, errors) in result.row_errors():
-                    print(num, '---', len(errors))
                     del_inform[num] = [error.error for error in errors]
                     import_nums.remove(num-1)
                 imported_data = imported_data.subset(import_nums)

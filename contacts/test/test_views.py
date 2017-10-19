@@ -542,22 +542,55 @@ class ImportContactViewTest(TestCase):
         self.assertContains(resp, 'csrfmiddlewaretoken')
 
     def test_csv_import_successful(self):
-        pass
-
-    def test_owner_for_imported_csv_data(self):
-        pass
+        self.client.login(username='testuser', password='password')
+        user = User.objects.get(username='testuser')
+        file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/Contact-import.csv')
+        file_path = os.path.normpath(file_path)
+        with open(file_path, 'rb') as fh:
+            input_file = SimpleUploadedFile('Contact-import.csv', fh.read())
+            data = {'import_file': input_file,
+                'input_format': 0}
+            resp = self.client.post(reverse('import_contact'), data)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(Contact.objects.count(), 14)
+        query_set = Contact.objects.all()[11:]
+        for obj in query_set:
+            self.assertEqual(obj.owner, user)
 
     def test_xls_import_successful(self):
-        pass
-
-    def test_owner_for_imported_xls_data(self):
-        pass
+        self.client.login(username='testuser', password='password')
+        user = User.objects.get(username='testuser')
+        file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/Contact-import.xls')
+        file_path = os.path.normpath(file_path)
+        with open(file_path, 'rb') as fh:
+            input_file = SimpleUploadedFile('Contact-import.xls', fh.read())
+            data = {'import_file': input_file,
+                'input_format': 1}
+            resp = self.client.post(reverse('import_contact'), data)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(Contact.objects.count(), 14)
+        # Check owner for imported contacts
+        query_set = Contact.objects.all()[11:]
+        for obj in query_set:
+            self.assertEqual(obj.owner, user)
 
     def test_xlsx_import_successful(self):
-        pass
+        self.client.login(username='testuser', password='password')
+        user = User.objects.get(username='testuser')
+        file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/Contact-import.xlsx')
+        file_path = os.path.normpath(file_path)
+        with open(file_path, 'rb') as fh:
+            input_file = SimpleUploadedFile('Contact-import.xlsx', fh.read())
+            data = {'import_file': input_file,
+                    'input_format': 2}
+            resp = self.client.post(reverse('import_contact'), data)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(Contact.objects.count(), 14)
+        # Check owner for imported contacts
+        query_set = Contact.objects.all()[11:]
+        for obj in query_set:
+            self.assertEqual(obj.owner, user)
 
-    def test_owner_for_imported_xlsx_data(self):
-        pass
 
 
 
