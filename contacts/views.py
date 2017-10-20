@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.core.urlresolvers import reverse
 from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm
 from .models import Contact, ContactPhoto
@@ -20,10 +21,25 @@ from tablib import Dataset
 
 # Create your views here.
 
+def check_owner(view_func, redirect_url_name='login'):
+    """
+    Decorator, which check if logged in user is owner of the requested object. If False, request is redirected to login
+    page with next = request url
+    """
+    def wrapper(*args, **kwargs):
+        request = args[0]
+        user = request.user
+        contact = get_object_or_404(Contact, pk=kwargs['pk'])
+        if user == contact.owner:
+            return view_func(*args, **kwargs)
+        else:
+            return redirect('%s?next=%s' % (reverse(redirect_url_name), request.path))
+    return wrapper
+
 def sign_up(request):
     """
     User registration view. Create new User object, Profile object as well through post save signal.
-    After creation User is authenticated and loged in with redirecting to contact list page  
+    After creation User is authenticated and logged in with redirecting to contact list page
     :param request: http request 
     :return: new user object, profile object and redirect to main page with new user
     """
@@ -31,7 +47,7 @@ def sign_up(request):
         form = UserSignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user.refresh_from_db()  #refresh related object in DB
+            user.refresh_from_db()  # refresh related object in DB
             user.profile.first_name = form.cleaned_data.get('first_name')
             user.profile.last_name = form.cleaned_data.get('last_name')
             user.profile.email = form.cleaned_data.get('email')
@@ -47,16 +63,15 @@ def sign_up(request):
 
 @login_required(login_url='/login/')
 def contact_list(request):
-    if request.user.is_authenticated():
-        user = request.user
-        user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'lastname')
-        user_contacts_last_thumb = [(contact, contact.contactphoto_set.first()) for contact in user_contacts]
-        contact_count = user_contacts.count()
+    user = request.user
+    user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'lastname')
+    user_contacts_last_thumb = [(contact, contact.contactphoto_set.first()) for contact in user_contacts]
+    contact_count = user_contacts.count()
     return render(request, 'contacts/main.html', {'user_contacts': user_contacts_last_thumb, 'count': contact_count,
                                                   'user': user})
 
-
-@login_required(login_url='/login/')
+@check_owner
+#@login_required(login_url='/login/')
 def edit_contact(request, pk):
     """
     This view creates bounded Modelforms: Contact and ContactPhoto based on Contact pk parameter. It changes contact 
@@ -67,8 +82,6 @@ def edit_contact(request, pk):
     """
     contact_obj = get_object_or_404(Contact, pk=pk)
     contact_photo, created = ContactPhoto.objects.get_or_create(contact=contact_obj)
-    if created:
-        contact_photo.active = True
     if request.method == "POST":
         contact_form = ContactForm(request.POST, instance=contact_obj)
         contact_photo_form = ContactPhotoForm(request.POST, request.FILES, instance=contact_photo)
@@ -80,8 +93,6 @@ def edit_contact(request, pk):
         if contact_form.is_valid() and contact_photo_form.is_valid():
             fname = contact_photo_form.cleaned_data.get('photo', False)
             # If there is uploaded file, update current row to 'active=False' and then create bound form with new instance
-            if fname:
-                contact_photo.active = False
             contact_form.save()
             contact_photo_form.save()
             return redirect('contact_list')
@@ -111,7 +122,8 @@ def new_contact(request):
         contact_photo_form = ContactPhotoForm()
     return render(request, 'contacts/contact_form.html', {'form': form, 'photo_form': contact_photo_form})
 
-@login_required(login_url='/login/')
+@check_owner
+#@login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
     contact_photos = contact_obj.contactphoto_set.all()
@@ -121,7 +133,6 @@ def remove_contact(request, pk):
             photo.thumbnail.delete()
     contact_obj.delete()
     return redirect('contact_list')
-
 
 # view for export contacts
 @login_required(login_url='/login/')
@@ -133,14 +144,12 @@ def export_contacts(request):
             file_format = formats[int(form.cleaned_data['file_format'])]()
             file_extension = file_format.get_extension()
             content_type = file_format.CONTENT_TYPE
-            print(content_type)
             queryset = Contact.objects.filter(owner=request.user)
             contact_list = ContactResource().export(queryset)
             export_data = file_format.export_data(contact_list)
             _time = datetime.now().strftime('%Y-%m-%d')
             _model = ContactResource.Meta.model.__name__
             filename = '%s-%s.%s' %(_model, _time, file_extension)
-            print(filename)
             response = HttpResponse(export_data, content_type=content_type)
             # response.write(codecs.BOM_UTF8)
             response['Content-Disposition'] = 'attachment; filename = %s' % filename
@@ -163,7 +172,6 @@ def import_contacts(request):
             else:
                 filename = request.FILES['import_file']
                 imported_data = file_format.create_dataset(filename.read())
-            print(imported_data)
             row_count = len(imported_data)
             imported_data.append_col([request.user.id]*row_count, header='owner')
             result = contact_resource.import_data(imported_data, dry_run=True, raise_errors=False)
@@ -172,7 +180,6 @@ def import_contacts(request):
             if result.has_errors():
                 import_nums = list(range(imported_data.height))
                 for (num, errors) in result.row_errors():
-                    print(num, '---', len(errors))
                     del_inform[num] = [error.error for error in errors]
                     import_nums.remove(num-1)
                 imported_data = imported_data.subset(import_nums)
@@ -186,39 +193,39 @@ def import_contacts(request):
     return render(request, 'contacts/import_form.html', {'form': form})
 
 
-def get_photos(request):
-    # Files (local path) to put in the .zip
-    photo_list = ContactPhotoResource().export()
-    line = str(photo_list.csv)
-    line = "\n".join(line.splitlines()[1:])
-
-    # relative to MEDIA_ROOT filepathes
-    filenames_rel = [row for row in line.split('\n') if row]
-    # list of absolute pathes
-    filenames = [os.path.join(MEDIA_ROOT, fpath) for fpath in filenames_rel]
-    zip_subdir = "photo"
-    zip_filename = "%s.zip" % zip_subdir
-
-    # Open ByteIO to grab in-memory ZIP contents
-    b = BytesIO()
-
-    # The zip compressor
-    zf = zipfile.ZipFile(b, "w")
-
-    for fpath in filenames:
-        # Calculate path for file in zip
-        fdir, fname = os.path.split(fpath)
-        zip_path = os.path.join(zip_subdir, fname)
-
-        # Add file, at correct path
-        zf.write(fpath, zip_path)
-
-    # Must close zip for all contents to be written
-    zf.close()
-
-    # Grab ZIP file from in-memory, make response with correct MIME-type
-    resp = HttpResponse(b.getvalue(), content_type="application/x-zip-compressed")
-    # ..and correct content-disposition
-    resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
-    resp['Content-length'] = b.tell()
-    return resp
+# def get_photos(request):
+#     # Files (local path) to put in the .zip
+#     photo_list = ContactPhotoResource().export()
+#     line = str(photo_list.csv)
+#     line = "\n".join(line.splitlines()[1:])
+#
+#     # relative to MEDIA_ROOT filepathes
+#     filenames_rel = [row for row in line.split('\n') if row]
+#     # list of absolute pathes
+#     filenames = [os.path.join(MEDIA_ROOT, fpath) for fpath in filenames_rel]
+#     zip_subdir = "photo"
+#     zip_filename = "%s.zip" % zip_subdir
+#
+#     # Open ByteIO to grab in-memory ZIP contents
+#     b = BytesIO()
+#
+#     # The zip compressor
+#     zf = zipfile.ZipFile(b, "w")
+#
+#     for fpath in filenames:
+#         # Calculate path for file in zip
+#         fdir, fname = os.path.split(fpath)
+#         zip_path = os.path.join(zip_subdir, fname)
+#
+#         # Add file, at correct path
+#         zf.write(fpath, zip_path)
+#
+#     # Must close zip for all contents to be written
+#     zf.close()
+#
+#     # Grab ZIP file from in-memory, make response with correct MIME-type
+#     resp = HttpResponse(b.getvalue(), content_type="application/x-zip-compressed")
+#     # ..and correct content-disposition
+#     resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+#     resp['Content-length'] = b.tell()
+#     return resp

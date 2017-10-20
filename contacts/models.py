@@ -7,7 +7,9 @@ from django.core.exceptions import ValidationError
 import imghdr
 
 #Validator for mobile number
-mobile_regex = RegexValidator(regex=r'^\+380\([0-9]{2}\)[0-9]{7}$', message="Phone number must be entered in the format: '+380(67)9999999'. Up to 15 digits allowed.", code='invalid_mobile')
+mobile_regex = RegexValidator(regex=r'^\+380\([0-9]{2}\)[0-9]{7}$',
+                              message="Phone number must be entered in the format: '+380(67)9999999'. Up to 15 digits allowed.",
+                              code='invalid_mobile')
 
 # Create your models here.
 class Profile(models.Model):
@@ -42,7 +44,7 @@ class Contact(models.Model):
     def __str__(self):
         return "Contact: %s %s" % (self.firstname, self.lastname)
 
-#Return seperate path directory for each user
+#Return separate path directory for each user
 def user_directory_path(instance, filename):
     return '{0}/{1}'.format(instance.contact.owner_id, filename)
 
@@ -64,7 +66,7 @@ class ContactPhoto(models.Model):
         self.__original_photo = self.photo
 
     def __str__(self):
-        return "Contact: %s %s_%s" % (self.contact.firstname, self.contact.lastname, self.photo.name)
+        return "Contact: %s %s %s" % (self.contact.firstname, self.contact.lastname, self.photo.name)
 
     def create_thumbnail(self):
         if not self.photo:
@@ -96,14 +98,9 @@ class ContactPhoto(models.Model):
 
     def save(self, *args, **kwargs):
         #Make thumbnail only if photo field was changed
-        # print(self.photo)
-        # print(self.__original_photo)
         if self.photo != self.__original_photo:
             self.create_thumbnail()
-        force_update = False
-        if self.id:
-            force_update = True
-        super(ContactPhoto, self).save(force_update=force_update)
+        super(ContactPhoto, self).save()
 
 
 
