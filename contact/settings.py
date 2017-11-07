@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'import_export',
+    'rest_framework',
 ]
 
 # Use nose to run all tests
@@ -53,6 +54,10 @@ NOSE_ARGS = [
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+REST_FRAMEWORK = {
+    
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

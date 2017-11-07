@@ -15,16 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-import rest_framework
-from contacts import views
+from rest_framework.urlpatterns import format_suffix_patterns
+from .views import ContactList, ContactDetail, root_api
 
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^', include('contacts.urls')),
-    url(r'^api/', include('api.urls'))
-]
-
-urlpatterns += [
-    url(r'^api-auth/', include('rest_framework.urls',
-                               namespace='rest_framework')),
-]
+urlpatterns = format_suffix_patterns([
+    url(r'^$', root_api),
+    url(r'^contacts/$', ContactList.as_view(), name='contact-list'),
+    url(r'^contacts/(?P<pk>\d+)/$', ContactDetail.as_view(), name='contact-detail'),
+])
