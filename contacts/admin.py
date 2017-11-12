@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
-from .models import Contact, ContactPhoto
+from .models import Contact, ContactPhoto, Dublicate
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget
 from import_export.admin import ImportExportModelAdmin
@@ -44,4 +44,5 @@ class ContactPhotoResource(resources.ModelResource):
 # admin.site.register(Contact)
 admin.site.register(Contact, ContactAdmin)
 admin.site.register(ContactPhoto)
+admin.site.register(Dublicate)
 

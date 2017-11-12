@@ -42,7 +42,14 @@ class Contact(models.Model):
     # var for tracking change in photo field to make decision regarding create_thumbnail
 
     def __str__(self):
-        return "Contact: %s %s" % (self.firstname, self.lastname)
+        return "%s %s" % (self.firstname, self.lastname)
+
+class Dublicate(models.Model):
+    contact_id = models.ForeignKey(Contact)
+    count = models.SmallIntegerField()
+
+    def __str__(self):
+        return '%s %s %s' % (self.contact_id.firstname, self.contact_id.secondname, self.contact_id.mobile)
 
 
 # Return separate path directory for each user
