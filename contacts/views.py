@@ -2,6 +2,7 @@ import codecs
 import csv
 import os
 import zipfile
+import collections
 from io import BytesIO
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
@@ -10,7 +11,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm
-from .models import Contact, ContactPhoto
+from .models import Contact, ContactPhoto, Dublicate
 from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT
 from import_export.forms import ExportForm, ImportForm
 from import_export.admin import ExportMixin
@@ -19,13 +20,37 @@ import csv
 from io import TextIOWrapper
 from tablib import Dataset
 
+
 # Create your views here.
+
+def find_dublicates(request, create=False):
+    if create:
+        Dublicate.objects.all().delete()
+    total_count = 0
+    user = request.user
+    query_set = Contact.objects.filter(owner=user).order_by('mobile')
+    qs_length = query_set.count()
+    index = 0
+    while index < qs_length:
+        # print(query_set)
+        mobile = query_set[index].mobile
+        objects = query_set.filter(mobile=mobile)
+        count = objects.count()
+        if count > 1:
+            total_count += count
+            if create:
+                dublicates = [Dublicate(contact_id=item, count=count) for item in objects]
+                Dublicate.objects.bulk_create(dublicates)
+        index += count
+    return total_count
+
 
 def check_owner(view_func, redirect_url_name='login'):
     """
     Decorator, which check if logged in user is owner of the requested object. If False, request is redirected to login
     page with next = request url
     """
+
     def wrapper(*args, **kwargs):
         request = args[0]
         user = request.user
@@ -35,6 +60,7 @@ def check_owner(view_func, redirect_url_name='login'):
         else:
             return redirect('%s?next=%s' % (reverse(redirect_url_name), request.path))
     return wrapper
+
 
 def sign_up(request):
     """
@@ -67,11 +93,38 @@ def contact_list(request):
     user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'lastname')
     user_contacts_last_thumb = [(contact, contact.contactphoto_set.first()) for contact in user_contacts]
     contact_count = user_contacts.count()
+    dublicate_count = find_dublicates(request)
     return render(request, 'contacts/main.html', {'user_contacts': user_contacts_last_thumb, 'count': contact_count,
-                                                  'user': user})
+                                                  'dublicate_count': dublicate_count, 'user': user})
+
+
+@login_required(login_url='/login/')
+def dublicate_list(request):
+    user = request.user
+    contact_count = Contact.objects.filter(owner=user).count()
+    dublicate_count = find_dublicates(request, True)
+    dublicates = Dublicate.objects.filter(contact_id__owner=user).order_by('contact_id__mobile')
+    return render(request, 'contacts/dublicate.html', {'dublicates': dublicates, 'count': contact_count,
+                                                       'dublicate_count': dublicate_count, 'user': user})
+
+@login_required()
+def merge_dublicates(request):
+    ids_from_form = request.POST.getlist('contact_id')
+    mobiles = [item.mobile for item in Contact.objects.filter(id__in=ids_from_form)]
+    # print('------', mobiles, '-----')
+    for_delete = Contact.objects.filter(mobile__in=mobiles).exclude(id__in=ids_from_form)
+    for_delete.delete()
+    Dublicate.objects.filter(contact_id__in=ids_from_form).delete()
+    user = request.user
+    contact_count = Contact.objects.filter(owner=user).count()
+    dublicate_count = find_dublicates(request, True)
+    dublicates = Dublicate.objects.filter(contact_id__owner=user).order_by('contact_id__mobile')
+    return render(request, 'contacts/dublicate.html', {'dublicates': dublicates, 'count': contact_count,
+                                                       'dublicate_count': dublicate_count, 'user': user})
+
 
 @check_owner
-#@login_required(login_url='/login/')
+# @login_required(login_url='/login/')
 def edit_contact(request, pk):
     """
     This view creates bounded Modelforms: Contact and ContactPhoto based on Contact pk parameter. It changes contact 
@@ -122,8 +175,9 @@ def new_contact(request):
         contact_photo_form = ContactPhotoForm()
     return render(request, 'contacts/contact_form.html', {'form': form, 'photo_form': contact_photo_form})
 
+
 @check_owner
-#@login_required(login_url='/login/')
+# @login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
     contact_photos = contact_obj.contactphoto_set.all()
@@ -133,6 +187,7 @@ def remove_contact(request, pk):
             photo.thumbnail.delete()
     contact_obj.delete()
     return redirect('contact_list')
+
 
 # view for export contacts
 @login_required(login_url='/login/')
@@ -149,7 +204,7 @@ def export_contacts(request):
             export_data = file_format.export_data(contact_list)
             _time = datetime.now().strftime('%Y-%m-%d')
             _model = ContactResource.Meta.model.__name__
-            filename = '%s-%s.%s' %(_model, _time, file_extension)
+            filename = '%s-%s.%s' % (_model, _time, file_extension)
             response = HttpResponse(export_data, content_type=content_type)
             # response.write(codecs.BOM_UTF8)
             response['Content-Disposition'] = 'attachment; filename = %s' % filename
@@ -157,6 +212,7 @@ def export_contacts(request):
     else:
         form = ExportForm(formats)
     return render(request, 'contacts/export_form.html', {'form': form})
+
 
 @login_required(login_url='/login/')
 def import_contacts(request):
@@ -173,7 +229,7 @@ def import_contacts(request):
                 filename = request.FILES['import_file']
                 imported_data = file_format.create_dataset(filename.read())
             row_count = len(imported_data)
-            imported_data.append_col([request.user.id]*row_count, header='owner')
+            imported_data.append_col([request.user.id] * row_count, header='owner')
             result = contact_resource.import_data(imported_data, dry_run=True, raise_errors=False)
             total_qty = imported_data.height
             del_inform = {}
@@ -181,17 +237,16 @@ def import_contacts(request):
                 import_nums = list(range(imported_data.height))
                 for (num, errors) in result.row_errors():
                     del_inform[num] = [error.error for error in errors]
-                    import_nums.remove(num-1)
+                    import_nums.remove(num - 1)
                 imported_data = imported_data.subset(import_nums)
             contact_resource.import_data(imported_data, dry_run=False)
             success_qty = imported_data.height
             error_qty = len(del_inform)
             return render(request, 'contacts/import_form.html', {'errors': del_inform,
-                                                                   'statistics': (total_qty, success_qty, error_qty)})
+                                                                 'statistics': (total_qty, success_qty, error_qty)})
     else:
         form = ImportForm(formats)
     return render(request, 'contacts/import_form.html', {'form': form})
-
 
 # def get_photos(request):
 #     # Files (local path) to put in the .zip

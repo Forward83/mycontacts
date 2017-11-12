@@ -22,6 +22,8 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     url(r'^$', views.contact_list, name='contact_list'),
     url(r'^contact/(?P<pk>\d+)/$', views.edit_contact, name='edit_contact'),
+    url(r'dublicates/$', views.dublicate_list, name='dublicate_list'),
+    url(r'dublicates/merge/$', views.merge_dublicates, name='merge_dublicates'),
     url(r'^new_contact/$', views.new_contact, name='new_contact'),
     url(r'^contact/(?P<pk>\d+)/remove/$', views.remove_contact, name='remove_contact'),
     url(r'^contact/export/$', views.export_contacts, name='export_contact'),

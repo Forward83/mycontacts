@@ -118,6 +118,10 @@ body {
     font-weight: 500;
 }
 
+table.table {
+    border-bottom: none;
+}
+
 #contact_photo {
     border-radius: 50%;
 }
