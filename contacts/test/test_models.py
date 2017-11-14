@@ -37,7 +37,7 @@ class TestContactModel(TestCase):
         user = User.objects.get(pk=1)
         c1 = Contact(owner=user, firstname='sergii', secondname='victorovych', lastname='iukhymchuk',
                                mobile='+380(67)2162478')
-        self.assertEqual(c1.__str__(), "Contact: %s %s" % (c1.firstname, c1.lastname))
+        self.assertEqual(c1.__str__(), "%s %s" % (c1.firstname, c1.lastname))
 
 
 class TestContactPhotoModel(TestCase):
