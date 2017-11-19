@@ -112,7 +112,8 @@ def merge_dublicates(request):
     mobiles = [item.mobile for item in Contact.objects.filter(id__in=ids_from_form)]
     # print('------', mobiles, '-----')
     for_delete = Contact.objects.filter(mobile__in=mobiles).exclude(id__in=ids_from_form)
-    for_delete.delete()
+    for item in for_delete:
+        item.delete()
     Dublicate.objects.filter(contact_id__in=ids_from_form).delete()
     user = request.user
     contact_count = Contact.objects.filter(owner=user).count()
@@ -179,11 +180,11 @@ def new_contact(request):
 # @login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
-    contact_photos = contact_obj.contactphoto_set.all()
-    for photo in contact_photos:
-        if photo.photo:
-            photo.photo.delete()
-            photo.thumbnail.delete()
+    # contact_photos = contact_obj.contactphoto_set.all()
+    # for photo in contact_photos:
+    #     if photo.photo:
+    #         photo.photo.delete()
+    #         photo.thumbnail.delete()
     contact_obj.delete()
     return redirect('contact_list')
 

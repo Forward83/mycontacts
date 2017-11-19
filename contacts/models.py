@@ -44,6 +44,18 @@ class Contact(models.Model):
     def __str__(self):
         return "%s %s" % (self.firstname, self.lastname)
 
+    def delete(self, using=None, keep_parents=False):
+        print('----Calling delete method------')
+        photos = self.contactphoto_set.all()
+        print('Candiate for Deleting photos:', photos)
+        if photos:
+            for photo in photos:
+                if photo.photo:
+                    print('Deleting photos:', photo)
+                    photo.photo.delete()
+                    photo.thumbnail.delete()
+        super(Contact, self).delete()
+
 class Dublicate(models.Model):
     contact_id = models.ForeignKey(Contact)
     count = models.SmallIntegerField()
@@ -111,6 +123,7 @@ class ContactPhoto(models.Model):
         super(ContactPhoto, self).save()
 
     # def delete(self, using=None, keep_parents=False):
+
 
 
 
