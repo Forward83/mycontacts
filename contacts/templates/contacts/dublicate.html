@@ -22,39 +22,45 @@
               <table class="table">
                 <div id="dialog" title="Confirm delete"></div>
                 {% for item in dublicates %}
-                    {% ifchanged item.contact_id.mobile %}
-                        {% if not forloop.first %}
-                            <tr>
-                                <td>
-    {#                                <form action="{% url 'merge_dublicates' %}" method="POST">#}
-    {#                                    {% csrf_token %}#}
-                                        <div class="submit-row">
-                                             <input type="submit" class="default" value="Merge">
-                                        </div>
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endifchanged %}
+                    {% with contact=item.contact_id photo=item.contact_id.contactphoto_set.first %}
+                        {% ifchanged contact.mobile %}
+                            {% if not forloop.first %}
+                                <tr>
+                                    <td>
+        {#                                <form action="{% url 'merge_dublicates' %}" method="POST">#}
+        {#                                    {% csrf_token %}#}
+                                            <div class="submit-row">
+                                                 <input type="submit" class="default" value="Merge">
+                                            </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endifchanged %}
                     <tr>
-                        <td> <input type="checkbox" name="contact_id" value="{{ item.contact_id.id }}" </td>
-                        <td>{{ item.contact_id.lastname }} {{ item.contact_id.firstname }} {{ item.contact_id.secondname }}</td>
-                        <td> {% if item.contact_id.email %}
-                             {{ item.contact_id.email }}
+                        <td>
+                            {% if photo.thumbnail.name %}
+                             <img id="contact_photo" src="{{photo.thumbnail.url}}" height="30" width="30"/>
                             {% endif %}
                         </td>
-                        <td>{{ item.contact_id.mobile }}</td>
+                        <td> <input type="checkbox" name="contact_id" value="{{ contact.id }}" </td>
+                        <td>{{ contact.lastname }} {{ contact.firstname }} {{ contact.secondname }}</td>
+                        <td> {% if contact.email %}
+                             {{ contact.email }}
+                            {% endif %}
+                        </td>
+                        <td>{{ contact.mobile }}</td>
                         <!-- Menu for row -->
-                        <td> {% if item.contact_id.star %}
+                        <td> {% if contact.star %}
                              <a href="" <span class="glyphicon glyphicon-star"></span></a>
                             {% else %}
                             <a href="" <span class="glyphicon glyphicon-star-empty"></span></a>
                             {% endif %}
-                            <a href="{% url 'edit_contact' pk=item.contact_id.pk %}"><span class="glyphicon glyphicon-pencil" tooltip-glyph="glyph-tooltip-demo" data-original-title="Edit contact"></span></a>
-                            <a href="{% url 'remove_contact' pk=item.contact_id.pk %}" onclick="return confirm('Are you sure you want to delete this?')
+                            <a href="{% url 'edit_contact' pk=contact.pk %}"><span class="glyphicon glyphicon-pencil" tooltip-glyph="glyph-tooltip-demo" data-original-title="Edit contact"></span></a>
+                            <a href="{% url 'remove_contact' pk=contact.pk %}" onclick="return confirm('Are you sure you want to delete this?')
                             "<span class="glyphicon glyphicon-remove" tooltip-glyph="glyph-tooltip-demo" data-original-title="Delete contact"></span></a>
                         </td>
                         </tr>
-                    {% if forloop.last %}
+                        {% if forloop.last %}
                         <tr>
                                 <td>
                                         <div class="submit-row">
@@ -62,7 +68,8 @@
                                         </div>
                                 </td>
                         </tr>
-                    {% endif %}
+                        {% endif %}
+                    {% endwith %}
                 {% endfor %}
               </table>
             </form>
