@@ -29,8 +29,8 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 DEBUG = config('DEBUG', default=False, cast=bool)
-# ALLOWED_HOSTS = []
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+# ALLOWED_HOSTS = ['.appspot.com', 'proven-center-186811.appspot.com',]
 
 # Application definition
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'import_export',
     'rest_framework',
+    'storages',
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -90,16 +91,38 @@ DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL')
     )
-    #     {
+    #    'default': {
     #     'ENGINE': 'django.db.backends.mysql',
     #     'NAME': 'contacts',
     #     'USER': 'mycontact',
     #     'PASSWORD': 'P@ssw0rd123',
-    #     'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+    #     'HOST': '35.198.128.5',   # Or an IP Address that your DB is hosted on
     #     'PORT': '3306',
     # }
 }
 
+DATABASES['default']['HOST'] = '/cloudsql/proven-center-186811:europe-west3:mycontact'
+# SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = False
+if not os.getenv('GAE_INSTANCE'):
+    DATABASES['default']['HOST'] = '127.0.0.1'
+    DEBUG = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO'
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -134,9 +157,14 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.11/howto/static-files/
+GS_BUCKET_NAME = '186811' # the name of the bucket you have created from the google cloud storage console
+GS_PROJECT_ID = 'proven-center-186811'
 
-STATIC_URL = '/static/'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+
+STATIC_ROOT = '/home/forward/.virtualenvs/mycontacts/static'
+STATIC_URL = 'http://storage.googleapis.com/186811/static/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
 MEDIA_ROOT = os.path.join(BASE_DIR,'contacts/media')

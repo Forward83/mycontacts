@@ -1,0 +1,14 @@
+runtime: python
+env: flex
+entrypoint: gunicorn -b :$PORT contact.wsgi
+
+beta_settings:
+    cloud_sql_instances: proven-center-186811:europe-west3:mycontact
+
+#[START env]
+env_variables:
+    CLOUD_STORAGE_BUCKET: 186811
+#[END env]
+
+runtime_config:
+  python_version: 3

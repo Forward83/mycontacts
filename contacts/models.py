@@ -4,6 +4,10 @@ from django.db.models.signals import post_save, post_init
 from django.dispatch import receiver
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
+from io import BytesIO
 import imghdr
 
 #Validator for mobile number
@@ -45,15 +49,13 @@ class Contact(models.Model):
         return "%s %s" % (self.firstname, self.lastname)
 
     def delete(self, using=None, keep_parents=False):
-        print('----Calling delete method------')
         photos = self.contactphoto_set.all()
-        print('Candiate for Deleting photos:', photos)
         if photos:
             for photo in photos:
                 if photo.photo:
-                    print('Deleting photos:', photo)
-                    photo.photo.delete()
-                    photo.thumbnail.delete()
+                    default_storage.delete(photo.photo.name)
+                    # photo.photo.delete()
+                    # photo.thumbnail.delete()
         super(Contact, self).delete()
 
 class Dublicate(models.Model):
@@ -85,15 +87,14 @@ class ContactPhoto(models.Model):
         self.__original_photo = self.photo
 
     def __str__(self):
-        return "Contact: %s %s %s" % (self.contact.firstname, self.contact.lastname, self.photo.name)
+        return "Contact: %s %s %s %s" % (self.contact.firstname, self.contact.lastname, self.photo.name, self.thumbnail.name)
 
     def create_thumbnail(self):
         if not self.photo:
             return
         from PIL import Image
-        from io import BytesIO
         from contact.settings import THUMB_SIZE
-        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.core.files.storage import default_storage
         import os
 
         thumb_extension = os.path.splitext(self.photo.name)[1].lower()
@@ -103,7 +104,7 @@ class ContactPhoto(models.Model):
             PIL_TYPE = 'GIF'
         elif thumb_extension == '.png':
             PIL_TYPE = 'PNG'
-
+        # photo = SimpleUploadedFile(s.path.split(self.photo.name)[-1],self.photo.read())
         img = Image.open(BytesIO(self.photo.read()))
         img.thumbnail(THUMB_SIZE, Image.ANTIALIAS)
         tmp_handle = BytesIO()
@@ -114,12 +115,13 @@ class ContactPhoto(models.Model):
             '%s_thumbnail%s' % (os.path.splitext(suf.name)[0], thumb_extension),
             suf, save=False
         )
+        self.photo = self.thumbnail
 
     def save(self, *args, **kwargs):
         #Make thumbnail only if photo field was changed
-        if self.photo != self.__original_photo:
+        if self.photo != self.__original_photo and self.photo:
             self.create_thumbnail()
-        super(ContactPhoto, self).save()
+        super(ContactPhoto, self).save(*args, **kwargs)
 
 
 
