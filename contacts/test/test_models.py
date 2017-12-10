@@ -17,7 +17,7 @@ class TestContactModel(TestCase):
         User.objects.create_user(username='testuser', password='testpassword')
 
     def test_mobile_validator(self):
-        user = User.objects.get(pk=1)
+        user = User.objects.get(username='testuser')
         correct_mobile = '+380(67)2162478'
         wrong_mobile = '+380672162478'
         c1 = Contact(owner=user, firstname='test', secondname='test', lastname='test',
@@ -33,10 +33,11 @@ class TestContactModel(TestCase):
         except ValidationError:
             self.fail("Unexpected Validation error during saving correct object")
 
-    def test_str_overide(self):
-        user = User.objects.get(pk=1)
+    def test_str_override(self):
+        user = User.objects.get(username='testuser')
         c1 = Contact(owner=user, firstname='sergii', secondname='victorovych', lastname='iukhymchuk',
                                mobile='+380(67)2162478')
+        c1.save()
         self.assertEqual(c1.__str__(), "%s %s" % (c1.firstname, c1.lastname))
 
 

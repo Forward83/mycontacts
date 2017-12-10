@@ -5,9 +5,9 @@ from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
 from import_export.forms import ExportForm
 from import_export.formats import base_formats
-from contacts.models import Contact, Profile, ContactPhoto, user_directory_path
+from contacts.models import Contact, Profile, ContactPhoto, user_directory_path, Dublicate
 from django.urls import resolve
-from contacts.views import new_contact, sign_up, remove_contact, export_contacts, import_contacts
+from contacts.views import new_contact, sign_up, remove_contact, export_contacts, import_contacts, dublicate_list
 from contacts.forms import ContactForm, ContactPhotoForm
 from django.core.files.uploadedfile import SimpleUploadedFile
 from contact.settings import BASE_DIR, MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT
@@ -591,6 +591,85 @@ class ImportContactViewTest(TestCase):
         for obj in query_set:
             self.assertEqual(obj.owner, user)
 
+class DublicateListViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.url = reverse('dublicate_list')
+
+    def test_logged_in_user_status(self):
+        self.client.login(username='testuser', password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_not_logged_user_redirect(self):
+        response = self.client.get(self.url)
+        redirect_url = '{}?next={}'.format(reverse('login'), self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, redirect_url)
+
+    def test_correct_view_used(self):
+        self.client.login(username='testuser', password='password')
+        view = resolve(self.url)
+        self.assertEqual(view.func, dublicate_list)
+
+    def test_correct_template_used(self):
+        self.client.login(username='testuser', password='password')
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, 'contacts/dublicate.html')
+
+    def test_csrf_token_in_response(self):
+        self.client.login(username='testuser', password='password')
+        resp = self.client.get(self.url)
+        self.assertContains(resp, 'csrfmiddlewaretoken')
+
+    def test_correct_context_contain(self):
+        self.client.login(username='testuser', password='password')
+        response = self.client.get(self.url)
+        self.assertTrue('dublicates' in response.context)
+        self.assertTrue('dublicate_count' in response.context)
+        self.assertTrue('count' in response.context)
+        self.assertTrue('user' in response.context)
+
+    def test_dublicate_objects_creating(self):
+        self.client.login(username='testuser', password='password')
+        mobile = '+380(67)2162478'
+        mobile1 = '+380(67)2162479'
+        Contact.objects.create(owner=self.user, firstname='test1', secondname='test1', lastname='test1',
+                               mobile=mobile)
+        Contact.objects.create(owner=self.user, firstname='test2', secondname='test2', lastname='test2',
+                               mobile=mobile)
+        Contact.objects.create(owner=self.user, firstname='test2', secondname='test2', lastname='test2',
+                               mobile=mobile1)
+        response = self.client.get(self.url)
+        self.assertEqual(Dublicate.objects.count(), 2)
+        self.assertEqual(response.context['dublicate_count'], 2)
+        self.assertEqual(Contact.objects.count(), 3)
+
+    def test_merge_dublicate_view(self):
+        self.client.login(username='testuser', password='password')
+        mobile = '+380(67)2162478'
+        mobile1 = '+380(67)2162479'
+        ids = []
+        for i in range(0, 4):
+            name = 'test%s' % (i,)
+            if i % 2:
+                contact = Contact.objects.create(owner=self.user, firstname=name, secondname=name, lastname=name,
+                                       mobile=mobile)
+            else:
+                contact = Contact.objects.create(owner=self.user, firstname=name, secondname=name, lastname=name,
+                                       mobile=mobile1)
+            ids.append(contact.id)
+        contact4 = Contact.objects.create(owner=self.user, firstname='test4', secondname='test4', lastname='test4',
+                               mobile='+380(97)3500139')
+        self.client.get(self.url)
+        ids = ids[:2]
+        data ={'contact_id': ids}
+        resp = self.client.post(reverse('merge_dublicates'), data)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(Contact.objects.count(), 3)
+        ids.append(contact4.id)
+        for item in Contact.objects.all():
+            self.assertTrue(item.pk in ids)
 
 
 

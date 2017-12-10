@@ -31,7 +31,6 @@ def find_dublicates(request, create=False):
     qs_length = query_set.count()
     index = 0
     while index < qs_length:
-        # print(query_set)
         mobile = query_set[index].mobile
         objects = query_set.filter(mobile=mobile)
         count = objects.count()
@@ -180,11 +179,6 @@ def new_contact(request):
 # @login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
-    # contact_photos = contact_obj.contactphoto_set.all()
-    # for photo in contact_photos:
-    #     if photo.photo:
-    #         photo.photo.delete()
-    #         photo.thumbnail.delete()
     contact_obj.delete()
     return redirect('contact_list')
 
