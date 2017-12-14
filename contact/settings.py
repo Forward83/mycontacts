@@ -156,18 +156,21 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+# static files (CSS, JavaScript, Images)
 GS_BUCKET_NAME = '186811' # the name of the bucket you have created from the google cloud storage console
 GS_PROJECT_ID = 'proven-center-186811'
 
-
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+# STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
-STATIC_ROOT = '/home/forward/.virtualenvs/mycontacts/static'
-STATIC_URL = 'http://storage.googleapis.com/186811/static/'
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "static"),
+#     ]
+
+STATIC_URL = 'https://storage.googleapis.com/186811/static/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
-MEDIA_ROOT = os.path.join(BASE_DIR,'contacts/media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
 MEDIA_URL = '/media/'
 #Size for creating thumbnail
 THUMB_SIZE = (125, 125)

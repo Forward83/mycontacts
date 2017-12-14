@@ -1,4 +1,4 @@
-{% load static %}
+{% load staticfiles %}
 
 <html>
   <head>
@@ -8,9 +8,9 @@
         <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
         <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,900&amp;subset=cyrillic-ext" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'css\contacts.css' %}" type="text/css">
-        <link rel="stylesheet" href="{% static 'css\contact_form.css' %}" type="text/css">
-        <link rel="stylesheet" href="{% static 'css\export_import.css' %}" type="text/css">
+        <link rel="stylesheet" href="{% static 'contacts/css/contacts.css' %}" type="text/css">
+        <link rel="stylesheet" href="{% static 'contacts/css/contact_form.css' %}" type="text/css">
+        <link rel="stylesheet" href="{% static 'contacts/css/export_import.css' %}" type="text/css">
         
   </head>
   <body>
@@ -35,7 +35,7 @@
             </li>
         </ul>
     </nav>
-    <script src="{% static 'js/scripts.js' %}"> </script>
+    <script src="{% static 'contacts/js/scripts.js' %}"> </script>
     <!--   <div class="col-md-10">
           <table class="table table-hover table-striped">
             <tr>
