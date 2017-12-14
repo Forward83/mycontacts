@@ -110,9 +110,11 @@ def dublicate_list(request):
 @login_required()
 def merge_dublicates(request):
     ids_from_form = request.POST.getlist('contact_id')
+    print('IDs to remain: ', ids_from_form)
     mobiles = [item.mobile for item in Contact.objects.filter(id__in=ids_from_form)]
     # print('------', mobiles, '-----')
     for_delete = Contact.objects.filter(mobile__in=mobiles).exclude(id__in=ids_from_form)
+    print('Contacts for deleting:', for_delete)
     for item in for_delete:
         item.delete()
     Dublicate.objects.filter(contact_id__in=ids_from_form).delete()

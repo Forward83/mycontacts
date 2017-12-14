@@ -12,20 +12,7 @@
 
 {% block content %}
 {% load static %}
-<script src="{% static 'js/scripts.js' %}"> </script>
-    <!--<div class="container-fluid">
- <div class="row">
-      <div class="col-md-2">
-        <ul class="nav nav-pills nav-stacked">
-          <li role="presentation"><a href="#">Favorites</a></li>
-          <li role="presentation"><a href="#">Frequently contacted</a></li>
-          <li role="presentation"><a href="#">Dublicates</a></li>
-          <li class="nav-divider"></li>
-          <li role="presentation"><a href="#">Add Contact</a></li>
-          <li role="presentation"><a href="#">Import Contacts</a></li>
-          <li role="presentation"><a href="#">Export Contacts</a></li>
-        </ul>
-      </div> -->
+<script src="{% static 'contacts/js/scripts.js' %}"> </script>
     <div class="container-fluid">
         <div class="row">
             {% include 'contacts/sidebar.html' %}
