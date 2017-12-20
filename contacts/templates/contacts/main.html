@@ -26,12 +26,15 @@
                      <img id="contact_photo" src="{{photo.thumbnail.url}}" height="30" width="30"/>
                     {% endif %}
                 </td>
-                <td>{{contact.lastname}} {{contact.firstname}} {{contact.secondname}}</td>
+                <td> {% if contact.lastname %} {{contact.lastname}} {% endif %}
+                    {{contact.firstname}}
+                    {% if contact.secondname %}{{contact.secondname}} {% endif %} </td>
                 <td> {% if contact.email %}
                      {{contact.email}}
                     {% endif %}
                 </td>
                 <td>{{contact.mobile}}</td>
+                <td> {% if contact.business_phone %} {{contact.business_phone}} {% endif %} </td>
                 <!-- Menu for row -->
                 <td> {% if contact.star %}
                      <a href="" <span class="glyphicon glyphicon-star"></span></a>

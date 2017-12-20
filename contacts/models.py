@@ -31,11 +31,13 @@ def save_user_profile(sender, instance, **kwargs):
 class Contact(models.Model):
     owner = models.ForeignKey(User)
     firstname = models.CharField(max_length=30)
-    secondname = models.CharField(max_length=30)
-    lastname = models.CharField(max_length=40)
+    lastname = models.CharField(max_length=40, blank=True, null=True)
+    secondname = models.CharField(max_length=30, blank=True, null=True)
     mobile = models.CharField(max_length=15, validators=[mobile_regex])
     personal_phone = models.CharField(max_length=15, blank=True, null=True)
     business_phone = models.CharField(max_length=4, blank=True, null=True)
+    company = models.CharField(max_length=15, blank=True, null=True)
+    position = models.TextField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     star = models.BooleanField(default=False)
@@ -46,13 +48,10 @@ class Contact(models.Model):
         return "%s %s" % (self.firstname, self.lastname)
 
     def delete(self, using=None, keep_parents=False):
-        print('----Calling delete method------')
         photos = self.contactphoto_set.all()
-        print('Candiate for Deleting photos:', photos)
         if photos:
             for photo in photos:
                 if photo.photo:
-                    print('Deleting photos:', photo)
                     photo.photo.delete()
                     photo.thumbnail.delete()
         super(Contact, self).delete()

@@ -7,7 +7,18 @@ from contact.settings import PHOTO_SIZE
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from import_export.forms import ExportForm
 from io import BytesIO
+
+class TemplateFormatForm(ExportForm):
+    file_format = forms.ChoiceField(
+        label=_('Template format'),
+        choices=(),
+        )
+
+    def __init__(self, formats, *args, **kwargs):
+        ExportForm.__init__(self, formats, *args, **kwargs)
+
 
 class UserSignUpForm(UserCreationForm):
     first_name = forms.CharField(max_length=20, required=False)
@@ -36,8 +47,9 @@ class ContactForm(forms.ModelForm):
         widgets = {'firstname': TextInput(attrs={'placeholder': 'First', 'class': 'field-divided'}),
                   'secondname': TextInput(attrs={'placeholder': 'Second', 'class': 'field-divided'}),
                   'lastname': TextInput(attrs={'placeholder': 'Last', 'class': 'field-divided'}),
-                  'mobile': TextInput(attrs={'class': 'field-long'}),
+                  # 'mobile': TextInput(attrs={'class': 'field-long'}),
                   'home_phone': TextInput(attrs={'class': 'field-long'}),
+                  'position': TextInput(attrs={'class': 'field-long field-textarea'}),
                   'address': TextInput(attrs={'class': 'field-long field-textarea'}),
                   'email': TextInput(attrs={'class': 'field-long'}),
                   }

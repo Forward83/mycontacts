@@ -14,38 +14,24 @@
             {% csrf_token %}
             <ul class="form-style-1">
                 <li><label>Full Name <span class="required">*</span></label>
-                     {{form.firstname.errors}}
-                     {{form.firstname}}&nbsp;
-                     {{form.secondname.errors}}
-                     {{form.secondname}}&nbsp;
-                     {{form.lastname.errors}}
-                     {{form.lastname}}&nbsp;
+                     {{part1.0.errors}}
+                     {{part1.0}}&nbsp;
+                     {{part1.1.errors}}
+                     {{part1.1}}&nbsp;
+                     {{part1.2.errors}}
+                     {{part1.2}}&nbsp;
                 </li>
-                <li><label> {{form.mobile.label}} <span class="required">*</span></label>
-                    {{form.mobile.errors}}
-                    {{form.mobile}}
-                    <p id="help_text">{{ form.mobile.help_text }} </p>
+                <li><label> {{part1.3.label}} <span class="required">*</span></label>
+                    {{part1.3.errors}}
+                    <p> {{part1.3}} </p>
+                    <p id="help_text">{{ part1.3.help_text }} </p>
                 </li>
-                <li><label> {{form.home_phone.label}} </label>
-                    {{form.home_phone.errors}}
-                    {{form.home_phone}} 
+                {% for field in part2 %}
+                <li><label> {{field.label}} </label>
+                    {{field.errors}}
+                    <p>{{field}} </p>
                 </li>
-                <li>
-                    <label> {{form.address.label}} </label>
-                    {{form.address.errors}}
-                    {{form.address}}
-                <li><label> {{form.email.label}} </label>
-                    {{form.email.errors}}
-                    {{form.email}}
-                 </li>
-                 <li><label> {{photo_form.photo.label}} </label>
-                    {{photo_form.photo.errors}}
-                    {{photo_form.photo}}
-                 </li>
-                <li><label> {{form.star.label}} </label>
-                    {{form.star.errors}}
-                    {{form.star}}
-                </li>
+                {% endfor %}
                 <li>
                 <input type="submit" value="Submit" />
                 </li>
