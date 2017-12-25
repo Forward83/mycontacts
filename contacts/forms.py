@@ -7,8 +7,34 @@ from contact.settings import PHOTO_SIZE
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from import_export.forms import ExportForm
+from import_export.forms import ExportForm, ImportForm
+from shutil import get_archive_formats
 from io import BytesIO
+from contact.settings import ARCHIVE_FORMAT_FOR_IMPORT
+from contact.settings import MAX_SIZE_PHOTO_ARCHIVE
+
+def photo_file_size(value): # validator for archive photo field
+    limit = MAX_SIZE_PHOTO_ARCHIVE
+    if value.size > limit:
+        raise ValidationError('File too large. Size should not exceed {} B.'.format(MAX_SIZE_PHOTO_ARCHIVE))
+
+class ImportFileFolderForm(ImportForm):
+    photo_file = forms.FileField(label=_('Select archive file with photos'), required=False, validators=[photo_file_size])
+    archive_format = forms.ChoiceField(
+        label=_('Archive format'),
+        choices=(),
+        required=False,
+    )
+
+    def __init__(self, import_formats, archive_formats, *args, **kwargs):
+        ImportForm.__init__(self, import_formats, *args, **kwargs)
+        archive_choices = []
+        for i, f in enumerate(archive_formats):
+            archive_choices.append((str(i), f[0]),)
+        if len(archive_choices) > 1:
+            archive_choices.insert(0, ('', '---'))
+        self.fields['archive_format'].choices = archive_choices
+
 
 class TemplateFormatForm(ExportForm):
     file_format = forms.ChoiceField(

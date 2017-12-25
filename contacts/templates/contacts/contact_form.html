@@ -32,6 +32,12 @@
                     <p>{{field}} </p>
                 </li>
                 {% endfor %}
+                {% for field in photo_form %}
+                    <li><label> {{field.label}} </label>
+                    {{field.errors}}
+                    <p>{{field}} </p>
+                    </li>
+                {% endfor %}
                 <li>
                 <input type="submit" value="Submit" />
                 </li>

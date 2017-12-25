@@ -19,6 +19,8 @@
         <div class="col-md-10 table-body" >
           <table class="table table-hover">
             <div id="dialog" title="Confirm delete"></div>
+          <form method="POST" action="{% url 'bulk_delete' %}" id="contact_list_form">
+          {% csrf_token %}
             {% for contact, photo in user_contacts %}
             <tr>
                 <td> 
@@ -41,11 +43,20 @@
                     {% else %}
                     <a href="" <span class="glyphicon glyphicon-star-empty"></span></a>
                     {% endif %}
-                    <a href="{% url 'edit_contact' pk=contact.pk %}"><span class="glyphicon glyphicon-pencil" tooltip-glyph="glyph-tooltip-demo" data-original-title="Edit contact"></span></a>
-                    <a href="{% url 'remove_contact' pk=contact.pk %}" onclick="return confirm('Are you sure you want to delete this?')"<span class="glyphicon glyphicon-remove" tooltip-glyph="glyph-tooltip-demo" data-original-title="Delete contact"></span></a> 
+                    <a href="{% url 'edit_contact' pk=contact.pk %}"><span class="glyphicon glyphicon-pencil"
+                                                                           tooltip-glyph="glyph-tooltip-demo"
+                                                                           data-original-title="Edit contact"></span></a>
+                    <a href="{% url 'remove_contact' pk=contact.pk %}"
+                       onclick="return confirm('Are you sure you want to delete this?')"<span
+                            class="glyphicon glyphicon-remove" tooltip-glyph="glyph-tooltip-demo"
+                            data-original-title="Delete contact"></span></a>
+                </td>
+                <td>
+                    <input type="checkbox" name="contact_id" value={{ contact.id }}>
                 </td>
             </tr>
             {% endfor %}
+          </form>
           </table>
         </div>
 {% endblock %}
