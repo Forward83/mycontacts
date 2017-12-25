@@ -35,10 +35,13 @@ def save_user_profile(sender, instance, **kwargs):
 class Contact(models.Model):
     owner = models.ForeignKey(User)
     firstname = models.CharField(max_length=30)
-    secondname = models.CharField(max_length=30)
-    lastname = models.CharField(max_length=40)
+    lastname = models.CharField(max_length=40, blank=True, null=True)
+    secondname = models.CharField(max_length=30, blank=True, null=True)
     mobile = models.CharField(max_length=15, validators=[mobile_regex])
-    home_phone = models.CharField(max_length=15, blank=True, null=True)
+    personal_phone = models.CharField(max_length=15, blank=True, null=True)
+    business_phone = models.CharField(max_length=4, blank=True, null=True)
+    company = models.CharField(max_length=15, blank=True, null=True)
+    position = models.TextField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     star = models.BooleanField(default=False)
@@ -87,14 +90,15 @@ class ContactPhoto(models.Model):
         self.__original_photo = self.photo
 
     def __str__(self):
-        return "Contact: %s %s %s %s" % (self.contact.firstname, self.contact.lastname, self.photo.name, self.thumbnail.name)
+        return "Contact: %s %s %s" % (self.contact.firstname, self.contact.lastname, self.thumbnail.name)
 
     def create_thumbnail(self):
         if not self.photo:
             return
         from PIL import Image
+        from io import BytesIO
         from contact.settings import THUMB_SIZE
-        from django.core.files.storage import default_storage
+        from django.core.files.uploadedfile import SimpleUploadedFile
         import os
 
         thumb_extension = os.path.splitext(self.photo.name)[1].lower()
@@ -104,7 +108,7 @@ class ContactPhoto(models.Model):
             PIL_TYPE = 'GIF'
         elif thumb_extension == '.png':
             PIL_TYPE = 'PNG'
-        # photo = SimpleUploadedFile(s.path.split(self.photo.name)[-1],self.photo.read())
+
         img = Image.open(BytesIO(self.photo.read()))
         img.thumbnail(THUMB_SIZE, Image.ANTIALIAS)
         tmp_handle = BytesIO()
@@ -119,9 +123,9 @@ class ContactPhoto(models.Model):
 
     def save(self, *args, **kwargs):
         #Make thumbnail only if photo field was changed
-        if self.photo != self.__original_photo and self.photo:
+        if self.photo != self.__original_photo:
             self.create_thumbnail()
-        super(ContactPhoto, self).save(*args, **kwargs)
+        super(ContactPhoto, self).save()
 
 
 

@@ -7,15 +7,32 @@
         <div class="col-md-10">
               <div row>
                   <div id="content" class="colM">
-                        <h1>Import</h1>
-                        <form action="" method="POST" enctype="multipart/form-data">
+                        <h1>Download template</h1>
+                     <form action="" method="POST" enctype="multipart/form-data">
+                         {% csrf_token %}
+                         <fieldset class="module aligned">
+                            {%  for field in template_form %}
+                                <div class="form-row">
+                                    <label>
+                                    {{ field.label }}
+                                    </label>
+                                    {{ field.errors }}
+                                    {{ field }}
+                                </div>
+                            {% endfor %}
+                            <input type="submit" class="default" name="download" value="Download">
+                        </fieldset>
+                     </form>
+                    <h1>Import</h1>
+                    <p>
+                        This importer require you point in the file following fields:
+                        <code>
+                            id, firstname*, secondname, lastname, mobile*, personal_phone, business_phone, company,
+                            position, address, email, star
+                        </code>
+                    <p> * - required fields </p>
+                     <form action="" method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
-                            <p>
-                                This importer require you point in the file following fields:
-                                <code>
-                                    id (empty column), firstname*, secondname*, lastname*, mobile*, home_phone, address, email, star
-                                </code>
-                            <p> * - required fields </p>
                         <fieldset class="module aligned">
                             {%  for field in form %}
                                 <div class="form-row">
@@ -28,9 +45,9 @@
                             {% endfor %}
                         </fieldset>
                             <div class="submit-row">
-                                 <input type="submit" class="default" value="Submit">
+                                 <input type="submit" class="default" name="import" value="Submit">
                             </div>
-                        </form>
+                     </form>
                         {% if statistics %}
                             <h2>
                             Operation statistic:
