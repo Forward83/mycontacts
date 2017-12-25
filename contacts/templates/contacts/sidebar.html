@@ -5,10 +5,12 @@
         {% else %}
             <li role="presentation"><a href="/">Contacts</a></li>
         {% endif %}
-      <li role="presentation"><a href="{% url 'dublicate_list' %}"> Dublicates ({{ dublicate_count }})</a></li>
+      <li role="presentation"><a href="{% url 'dublicate_list' %}">
+          Dublicates ({{ dublicate_count }})</a></li>
       <li class="nav-divider"></li>
       <li role="presentation"><a href="{% url 'new_contact' %}">New Contacts</a></li>
       <li role="presentation"><a href="{% url 'import_contact' %}">Import Contacts</a></li>
       <li role="presentation"><a href="{% url 'export_contact' %}">Export Contacts</a></li>
+        <li role="presentation"><a href="javascript:document.getElementById('contact_list_form').submit();"> Bulk Delete</a></li>
     </ul>
 </div>

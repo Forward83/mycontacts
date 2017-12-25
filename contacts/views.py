@@ -2,14 +2,17 @@ import codecs
 import csv
 import os
 import zipfile
+import collections
 from io import BytesIO
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from .admin import ContactResource, ContactPhotoResource
-from .forms import ContactForm, ContactPhotoForm, UserSignUpForm
+from .forms import ContactForm, ContactPhotoForm, UserSignUpForm, TemplateFormatForm, ImportFileFolderForm
 from .models import Contact, ContactPhoto, Dublicate
 from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT
 from import_export.forms import ExportForm, ImportForm
@@ -17,6 +20,7 @@ from import_export.admin import ExportMixin
 from datetime import datetime
 import csv
 from io import TextIOWrapper
+import shutil
 from tablib import Dataset
 
 
@@ -31,6 +35,7 @@ def find_dublicates(request, create=False):
     qs_length = query_set.count()
     index = 0
     while index < qs_length:
+        # print(query_set)
         mobile = query_set[index].mobile
         objects = query_set.filter(mobile=mobile)
         count = objects.count()
@@ -88,7 +93,7 @@ def sign_up(request):
 @login_required(login_url='/login/')
 def contact_list(request):
     user = request.user
-    user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'lastname')
+    user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'firstname')
     user_contacts_last_thumb = [(contact, contact.contactphoto_set.first()) for contact in user_contacts]
     contact_count = user_contacts.count()
     dublicate_count = find_dublicates(request)
@@ -136,6 +141,8 @@ def edit_contact(request, pk):
     contact_photo, created = ContactPhoto.objects.get_or_create(contact=contact_obj)
     if request.method == "POST":
         contact_form = ContactForm(request.POST, instance=contact_obj)
+        part1 = list(contact_form)[0:4]
+        part2 = list(contact_form)[4:]
         contact_photo_form = ContactPhotoForm(request.POST, request.FILES, instance=contact_photo)
         check = request.POST.get('photo-clear', False)
         # If clear check button has been checked, corresponded files are deleted
@@ -150,15 +157,19 @@ def edit_contact(request, pk):
             return redirect('contact_list')
     else:
         contact_form = ContactForm(instance=contact_obj)
+        part1 = list(contact_form)[0:4]
+        part2 = list(contact_form)[4:]
         contact_photo_form = ContactPhotoForm(instance=contact_photo)
     return render(request, 'contacts/contact_form.html',
-                  {'form': contact_form, 'photo_form': contact_photo_form})
+                  {'form': contact_form, 'part1': part1, 'part2': part2, 'photo_form': contact_photo_form})
 
 
 @login_required(login_url='/login/')
 def new_contact(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
+        part1 = list(form)[0:4]
+        part2 = list(form)[4:]
         contact_photo_form = ContactPhotoForm(request.POST, request.FILES)
         if form.is_valid() and contact_photo_form.is_valid():
             contact_obj = form.save(commit=False)
@@ -171,16 +182,36 @@ def new_contact(request):
             return redirect('contact_list')
     else:
         form = ContactForm()
+        part1 = list(form)[0:4]
+        part2 = list(form)[4:]
         contact_photo_form = ContactPhotoForm()
-    return render(request, 'contacts/contact_form.html', {'form': form, 'photo_form': contact_photo_form})
+    return render(request, 'contacts/contact_form.html',
+                  {'part1': part1, 'part2': part2, 'photo_form': contact_photo_form})
 
 
 @check_owner
 # @login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
+    # contact_photos = contact_obj.contactphoto_set.all()
+    # for photo in contact_photos:
+    #     if photo.photo:
+    #         photo.photo.delete()
+    #         photo.thumbnail.delete()
     contact_obj.delete()
     return redirect('contact_list')
+
+@login_required
+def bulk_delete(request):
+    print(request.method)
+    if request.method == 'POST':
+        contact_ids = request.POST.getlist('contact_id')
+        print(contact_ids)
+        query = Contact.objects.filter(id__in=contact_ids)
+        for item in query:
+            item.delete()
+    return redirect('contact_list')
+
 
 
 # view for export contacts
@@ -198,7 +229,7 @@ def export_contacts(request):
             export_data = file_format.export_data(contact_list)
             _time = datetime.now().strftime('%Y-%m-%d')
             _model = ContactResource.Meta.model.__name__
-            filename = '%s-%s.%s' %(_model, _time, file_extension)
+            filename = '%s-%s.%s' % (_model, _time, file_extension)
             response = HttpResponse(export_data, content_type=content_type)
             # response.write(codecs.BOM_UTF8)
             response['Content-Disposition'] = 'attachment; filename = %s' % filename
@@ -212,36 +243,62 @@ def export_contacts(request):
 def import_contacts(request):
     formats = DEFAULT_FORMATS_FOR_IMPORT
     if request.method == 'POST':
-        form = ImportForm(formats, request.POST, request.FILES)
-        if form.is_valid():
-            contact_resource = ContactResource()
-            file_format = formats[int(form.cleaned_data['input_format'])]()
-            if file_format.CONTENT_TYPE == 'text/csv':
-                filename = TextIOWrapper(request.FILES['import_file'].file, encoding='utf-8')
-                imported_data = file_format.create_dataset(filename.read())
-            else:
-                filename = request.FILES['import_file']
-                imported_data = file_format.create_dataset(filename.read())
-            row_count = len(imported_data)
-            imported_data.append_col([request.user.id] * row_count, header='owner')
-            result = contact_resource.import_data(imported_data, dry_run=True, raise_errors=False)
-            total_qty = imported_data.height
-            del_inform = {}
-            if result.has_errors():
-                import_nums = list(range(imported_data.height))
-                for (num, errors) in result.row_errors():
-                    del_inform[num] = [error.error for error in errors]
-                    import_nums.remove(num - 1)
-                imported_data = imported_data.subset(import_nums)
-            contact_resource.import_data(imported_data, dry_run=False)
-            success_qty = imported_data.height
-            error_qty = len(del_inform)
-            return render(request, 'contacts/import_form.html', {'errors': del_inform,
-                                                                 'statistics': (total_qty, success_qty, error_qty)})
+        if 'import' in request.POST:
+            form = ImportFileFolderForm(formats, request.POST, request.FILES)
+            if form.is_valid():
+                contact_resource = ContactResource()
+                file_format = formats[int(form.cleaned_data['input_format'])]()
+                if file_format.CONTENT_TYPE == 'text/csv':
+                    filename = TextIOWrapper(request.FILES['import_file'].file, encoding='utf-8')
+                    imported_data = file_format.create_dataset(filename.read())
+                else:
+                    filename = request.FILES['import_file']
+                    imported_data = file_format.create_dataset(filename.read())
+                row_count = len(imported_data)
+                imported_data.append_col([request.user.id] * row_count, header='owner')
+                if request.FILES.get('photo_file', False):
+                    archive_file = request.FILES['photo_file']
+                    target_path = '{}/{}/tmp/{}'.format(MEDIA_ROOT, request.user.id, archive_file)
+                    choice_num = form.cleaned_data.get('archive_format')
+                    archive_format = shutil.get_archive_formats()[int(choice_num)]
+                    path = default_storage.save(target_path, ContentFile(archive_file.read()))
+                    shutil.unpack_archive(target_path, os.path.dirname(target_path))
+                result = contact_resource.import_data(imported_data, dry_run=True,
+                                                      raise_errors=False)
+                total_qty = imported_data.height
+                del_inform = {}
+                if result.has_errors():
+                    import_nums = list(range(imported_data.height))
+                    for (num, errors) in result.row_errors():
+                        del_inform[num] = [error.error for error in errors]
+                        import_nums.remove(num - 1)
+                    imported_data = imported_data.subset(import_nums)
+                contact_resource.import_data(imported_data, dry_run=False)
+                base_dir = '{}/{}/tmp'.format(MEDIA_ROOT, request.user.id)
+                if os.path.exists(base_dir):
+                    shutil.rmtree(base_dir, ignore_errors=True)
+                success_qty = imported_data.height
+                error_qty = len(del_inform)
+                return render(request, 'contacts/import_form.html', {'errors': del_inform,
+                              'statistics': (total_qty, success_qty, error_qty)})
+        elif 'download' in request.POST:
+            template_form = TemplateFormatForm(formats, request.POST)
+            if template_form.is_valid():
+                file_format = formats[int(template_form.cleaned_data['file_format'])]()
+                file_extension = file_format.get_extension()
+                content_type = file_format.CONTENT_TYPE
+                filename = 'Contact_template.{0}'.format(file_extension)
+                filepath = os.path.join(MEDIA_ROOT, 'import_templates', filename)
+                with open(filepath, 'rb') as ftemplate:
+                    response = HttpResponse(ftemplate, content_type=content_type)
+                    response['Content-Disposition'] = 'attachment; filename = %s' % filename
+                    return response
     else:
-        form = ImportForm(formats)
-    return render(request, 'contacts/import_form.html', {'form': form})
-
+        # form = ImportForm(formats)
+        form = ImportFileFolderForm(formats)
+        template_form = TemplateFormatForm(formats)
+        # template_form = ExportForm(formats)
+    return render(request, 'contacts/import_form.html', {'form': form, 'template_form': template_form})
 
 # def get_photos(request):
 #     # Files (local path) to put in the .zip
