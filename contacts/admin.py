@@ -48,11 +48,13 @@ class ContactResource(resources.ModelResource):
         else:
             original_id = instance.id
             try:  # If user didn't upload any photo previously
-                base_path = '{}/{}/tmp'.format(MEDIA_ROOT, instance.owner.id)
+                base_path = '{}/tmp'.format(instance.owner.id)
                 path_to_folder = path_to_archieve(base_path)
+                print(path_to_folder)
                 path_to_photo = os.path.join(path_to_folder, '{}.png'.format(instance.id))
             except TypeError:
-                path_to_photo = '{}/{}/tmp/{}.png'.format(MEDIA_ROOT, instance.owner.id, instance.id)
+                path_to_photo = '{}/tmp/{}.png'.format(instance.owner.id, instance.id)
+                print('Path to photo:', os.path.exists(path_to_photo))
             if instance.id and os.path.exists(path_to_photo):
                 instance.id = None
                 instance.save()

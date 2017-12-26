@@ -168,10 +168,11 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 #     ]
 
 STATIC_URL = 'https://storage.googleapis.com/186811/static/'
+MEDIA_URL = 'https://storage.googleapis.com/186811/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
-MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
+# MEDIA_URL = '/media/'
 #Size for creating thumbnail
 THUMB_SIZE = (125, 125)
 #Maximum allowed photo size

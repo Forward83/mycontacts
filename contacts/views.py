@@ -1,7 +1,7 @@
 import codecs
 import csv
 import os
-import zipfile
+import zipfile, tarfile
 import collections
 from io import BytesIO
 from django.contrib.auth.decorators import login_required
@@ -14,7 +14,7 @@ from django.core.files.base import ContentFile
 from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm, TemplateFormatForm, ImportFileFolderForm
 from .models import Contact, ContactPhoto, Dublicate
-from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT
+from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT, MEDIA_URL
 from import_export.forms import ExportForm, ImportForm
 from import_export.admin import ExportMixin
 from datetime import datetime
@@ -46,6 +46,11 @@ def find_dublicates(request, create=False):
                 Dublicate.objects.bulk_create(dublicates)
         index += count
     return total_count
+
+def extract_zip(input_zip):
+    input_zip = zipfile.ZipFile(input_zip)
+    input_zip.filelist
+    return {name: input_zip.read(name) for name in input_zip.namelist()}
 
 
 def check_owner(view_func, redirect_url_name='login'):
@@ -258,11 +263,16 @@ def import_contacts(request):
                 imported_data.append_col([request.user.id] * row_count, header='owner')
                 if request.FILES.get('photo_file', False):
                     archive_file = request.FILES['photo_file']
-                    target_path = '{}/{}/tmp/{}'.format(MEDIA_ROOT, request.user.id, archive_file)
+                    file_dict = extract_zip(archive_file)
+                    target_path = '{}/tmp'.format(request.user.id)
+                    for key, val in file_dict.items():
+                        # print(key, val)
+                        default_storage.save('{}/{}'.format(target_path, key), ContentFile(val))
                     choice_num = form.cleaned_data.get('archive_format')
-                    archive_format = shutil.get_archive_formats()[int(choice_num)]
-                    path = default_storage.save(target_path, ContentFile(archive_file.read()))
-                    shutil.unpack_archive(target_path, os.path.dirname(target_path))
+                    # archive_format = shutil.get_archive_formats()[int(choice_num)]
+                    # path = default_storage.save(target_path, ContentFile(archive_file.read()))
+                    # default_storage.
+                    # print(target_path)
                 result = contact_resource.import_data(imported_data, dry_run=True,
                                                       raise_errors=False)
                 total_qty = imported_data.height
