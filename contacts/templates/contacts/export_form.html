@@ -13,7 +13,9 @@
                             <fieldset class="module aligned">
                             {%  for field in form %}
                             <div class="form-row">
+                            <label>
                             {{ field.label }}
+                            </label>
                             {{ field.errors }}
                             {{ field }}
                             </div>
