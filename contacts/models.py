@@ -100,6 +100,7 @@ class ContactPhoto(models.Model):
         from contact.settings import THUMB_SIZE
         from django.core.files.uploadedfile import SimpleUploadedFile
         import os
+        import random, string
 
         thumb_extension = os.path.splitext(self.photo.name)[1].lower()
         if thumb_extension in ['.jpg', '.jpeg']:
@@ -115,8 +116,15 @@ class ContactPhoto(models.Model):
         img.save(tmp_handle, PIL_TYPE)
         tmp_handle.seek(0)
         suf = SimpleUploadedFile(os.path.split(self.photo.name)[-1], tmp_handle.read())
+        thumb_name = '%s_thumbnail%s' % (os.path.splitext(suf.name)[0], thumb_extension)
+        thumb_path = '{}/{}'.format(self.contact.owner.id, thumb_name)
+        if default_storage.exists(thumb_path):
+            random_choice = lambda n: ''.join([random.choice(string.ascii_lowercase) for i in range(n)])
+            random_str = random_choice(4)
+            thumb_name = '%s_thumbnail_%s%s' % (os.path.splitext(suf.name)[0], random_str, thumb_extension)
         self.thumbnail.save(
-            '%s_thumbnail%s' % (os.path.splitext(suf.name)[0], thumb_extension),
+            thumb_name,
+            # '%s_thumbnail%s' % (os.path.splitext(suf.name)[0], thumb_extension),
             suf, save=False
         )
         self.photo = self.thumbnail
@@ -126,11 +134,6 @@ class ContactPhoto(models.Model):
         if self.photo != self.__original_photo:
             self.create_thumbnail()
         super(ContactPhoto, self).save()
-
-
-
-
-
 
 
 

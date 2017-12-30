@@ -14,7 +14,7 @@ from django.core.files.base import ContentFile
 from .admin import ContactResource, ContactPhotoResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm, TemplateFormatForm, ImportFileFolderForm
 from .models import Contact, ContactPhoto, Dublicate
-from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT, MEDIA_URL
+from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT, ARCHIVE_FORMAT_FOR_IMPORT
 from import_export.forms import ExportForm, ImportForm
 from import_export.admin import ExportMixin
 from datetime import datetime
@@ -47,10 +47,33 @@ def find_dublicates(request, create=False):
         index += count
     return total_count
 
-def extract_zip(input_zip):
-    input_zip = zipfile.ZipFile(input_zip)
-    input_zip.filelist
-    return {name: input_zip.read(name) for name in input_zip.namelist()}
+def extract_archive(input_archive, archive_format, base_dir):
+    """
+    Extract uploaded archive file to base_dir directory. Supported archive types pointed in settings
+    :param input_archive: file object
+    :param archive_format:
+    :param user_id:
+    :return:
+    """
+    if archive_format == 'zip':
+        import zipfile
+        input_file = zipfile.ZipFile(input_archive)
+        for name in input_file.namelist()[1:]:
+            file_path = os.path.join(base_dir, os.path.basename(name))
+            file_obj = input_file.read(name)
+            default_storage.save(file_path, ContentFile(file_obj))
+    elif archive_format.startswith('tar'):
+        import tarfile
+        if archive_format == 'tar':
+            mode = 'r'
+        else:
+            mode = 'r:' + archive_format.split('.')[1]
+        input_file = tarfile.open(fileobj=input_archive, mode=mode)
+        for name in input_file.getmembers()[1:]:
+            file_path = os.path.join(base_dir, os.path.basename(name.name))
+            file_obj = input_file.extractfile(name)
+            default_storage.save(file_path, ContentFile(file_obj.read()))
+
 
 
 def check_owner(view_func, redirect_url_name='login'):
@@ -247,10 +270,13 @@ def export_contacts(request):
 @login_required(login_url='/login/')
 def import_contacts(request):
     formats = DEFAULT_FORMATS_FOR_IMPORT
+    archive_formats = ARCHIVE_FORMAT_FOR_IMPORT
     if request.method == 'POST':
         if 'import' in request.POST:
-            form = ImportFileFolderForm(formats, request.POST, request.FILES)
+            form = ImportFileFolderForm(formats, archive_formats, request.POST, request.FILES)
+            template_form = TemplateFormatForm(formats)
             if form.is_valid():
+                base_dir = '{}/tmp'.format(request.user.id)
                 contact_resource = ContactResource()
                 file_format = formats[int(form.cleaned_data['input_format'])]()
                 if file_format.CONTENT_TYPE == 'text/csv':
@@ -263,16 +289,9 @@ def import_contacts(request):
                 imported_data.append_col([request.user.id] * row_count, header='owner')
                 if request.FILES.get('photo_file', False):
                     archive_file = request.FILES['photo_file']
-                    file_dict = extract_zip(archive_file)
-                    target_path = '{}/tmp'.format(request.user.id)
-                    for key, val in file_dict.items():
-                        # print(key, val)
-                        default_storage.save('{}/{}'.format(target_path, key), ContentFile(val))
                     choice_num = form.cleaned_data.get('archive_format')
-                    # archive_format = shutil.get_archive_formats()[int(choice_num)]
-                    # path = default_storage.save(target_path, ContentFile(archive_file.read()))
-                    # default_storage.
-                    # print(target_path)
+                    archive_format = archive_formats[int(choice_num)][0]
+                    extract_archive(archive_file, archive_format, base_dir)
                 result = contact_resource.import_data(imported_data, dry_run=True,
                                                       raise_errors=False)
                 total_qty = imported_data.height
@@ -284,9 +303,9 @@ def import_contacts(request):
                         import_nums.remove(num - 1)
                     imported_data = imported_data.subset(import_nums)
                 contact_resource.import_data(imported_data, dry_run=False)
-                base_dir = '{}/{}/tmp'.format(MEDIA_ROOT, request.user.id)
-                if os.path.exists(base_dir):
-                    shutil.rmtree(base_dir, ignore_errors=True)
+                list_dir = default_storage.listdir(base_dir)
+                for file in list_dir[1]:
+                    default_storage.delete(os.path.join(base_dir, file))
                 success_qty = imported_data.height
                 error_qty = len(del_inform)
                 return render(request, 'contacts/import_form.html', {'errors': del_inform,
@@ -298,16 +317,14 @@ def import_contacts(request):
                 file_extension = file_format.get_extension()
                 content_type = file_format.CONTENT_TYPE
                 filename = 'Contact_template.{0}'.format(file_extension)
-                filepath = os.path.join(MEDIA_ROOT, 'import_templates', filename)
-                with open(filepath, 'rb') as ftemplate:
+                filepath = os.path.join('import_templates', filename)
+                with default_storage.open(filepath) as ftemplate:
                     response = HttpResponse(ftemplate, content_type=content_type)
                     response['Content-Disposition'] = 'attachment; filename = %s' % filename
                     return response
     else:
-        # form = ImportForm(formats)
-        form = ImportFileFolderForm(formats)
+        form = ImportFileFolderForm(formats, archive_formats)
         template_form = TemplateFormatForm(formats)
-        # template_form = ExportForm(formats)
     return render(request, 'contacts/import_form.html', {'form': form, 'template_form': template_form})
 
 # def get_photos(request):

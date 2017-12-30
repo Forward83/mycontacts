@@ -15,6 +15,7 @@ import dj_database_url
 from django.conf.global_settings import MEDIA_ROOT, MEDIA_URL
 from import_export.formats import base_formats
 from decouple import config, Csv
+import zipfile, tarfile
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -168,6 +169,7 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 #     ]
 
 STATIC_URL = 'https://storage.googleapis.com/186811/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = 'https://storage.googleapis.com/186811/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
@@ -180,3 +182,5 @@ PHOTO_SIZE = 2*1024*1024
 #Default formats for import-export actions
 DEFAULT_FORMATS_FOR_EXPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX, base_formats.HTML)
 DEFAULT_FORMATS_FOR_IMPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX)
+ARCHIVE_FORMAT_FOR_IMPORT = (('zip',), ('tar',), ('tar.gz',),)
+MAX_SIZE_PHOTO_ARCHIVE = 7340032

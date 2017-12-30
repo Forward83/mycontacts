@@ -1,13 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
-from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import Contact, ContactPhoto, Dublicate
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget
 from import_export.admin import ImportExportModelAdmin
 from django.forms import ValidationError
-from contact.settings import MEDIA_ROOT
+from django.core.files.storage import default_storage
 import re, os
 
 
@@ -50,15 +49,13 @@ class ContactResource(resources.ModelResource):
             try:  # If user didn't upload any photo previously
                 base_path = '{}/tmp'.format(instance.owner.id)
                 path_to_folder = path_to_archieve(base_path)
-                print(path_to_folder)
                 path_to_photo = os.path.join(path_to_folder, '{}.png'.format(instance.id))
             except TypeError:
                 path_to_photo = '{}/tmp/{}.png'.format(instance.owner.id, instance.id)
-                print('Path to photo:', os.path.exists(path_to_photo))
-            if instance.id and os.path.exists(path_to_photo):
+            if instance.id and default_storage.exists(path_to_photo):
                 instance.id = None
                 instance.save()
-                with open(path_to_photo, 'rb') as fcontent:
+                with default_storage.open(path_to_photo, 'rb') as fcontent:
                     fname = '{}.png'.format(original_id)
                     photo_field = SimpleUploadedFile(fname, fcontent.read(), 'image/png')
                     c = ContactPhoto.objects.create(contact=instance)
