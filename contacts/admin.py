@@ -40,7 +40,7 @@ class ContactResource(resources.ModelResource):
                                   )
         return False
 
-    def save_instance(self, instance, using_transactions=True, dry_run=False):
+    def save_instance(self, instance, using_transactions=None, dry_run=False):
         self.before_save_instance(instance, using_transactions, dry_run)
         if dry_run:
             pass
@@ -59,6 +59,7 @@ class ContactResource(resources.ModelResource):
                     fname = '{}.png'.format(original_id)
                     photo_field = SimpleUploadedFile(fname, fcontent.read(), 'image/png')
                     c = ContactPhoto.objects.create(contact=instance)
+                    # c = ContactPhoto(contact=instance)
                     c.photo = photo_field
                     c.save()
             else:

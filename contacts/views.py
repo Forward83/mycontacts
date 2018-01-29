@@ -292,8 +292,10 @@ def import_contacts(request):
                     choice_num = form.cleaned_data.get('archive_format')
                     archive_format = archive_formats[int(choice_num)][0]
                     extract_archive(archive_file, archive_format, base_dir)
-                result = contact_resource.import_data(imported_data, dry_run=True,
-                                                      raise_errors=False)
+                # result = contact_resource.import_data(imported_data, dry_run=True,
+                #                                       raise_errors=False)
+                result = contact_resource.import_data(imported_data, dry_run=False, collect_failed_rows=True,
+                                                      use_transactions=False)
                 total_qty = imported_data.height
                 del_inform = {}
                 if result.has_errors():
@@ -302,7 +304,7 @@ def import_contacts(request):
                         del_inform[num] = [error.error for error in errors]
                         import_nums.remove(num - 1)
                     imported_data = imported_data.subset(import_nums)
-                contact_resource.import_data(imported_data, dry_run=False)
+                # contact_resource.import_data(imported_data, dry_run=False)
                 list_dir = default_storage.listdir(base_dir)
                 for file in list_dir[1]:
                     default_storage.delete(os.path.join(base_dir, file))
