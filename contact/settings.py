@@ -52,12 +52,12 @@ JENKINS_TASKS = ('django_jenkins.tasks.run_pylint',
                  'django_jenkins.tasks.run_pyflakes',)
 
 # Use nose to run all tests
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
-NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-package=contacts',
-]
+# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+#
+# NOSE_ARGS = [
+#     '--with-coverage',
+#     '--cover-package=contacts',
+# ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
