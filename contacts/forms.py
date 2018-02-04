@@ -46,35 +46,6 @@ class TemplateFormatForm(ExportForm):
         ExportForm.__init__(self, formats, *args, **kwargs)
 
 
-class ImportFileFolderForm(ImportForm):
-    photo_file = forms.FileField(label=_('Select archive file with photos'), required=False)
-    archive_format = forms.ChoiceField(
-        label=_('Archive format'),
-        choices=get_archive_formats(),
-        required=False,
-    )
-
-    def __init__(self, import_formats, *args, **kwargs):
-        ImportForm.__init__(self, import_formats, *args, **kwargs)
-        archive_choices = []
-        for i, f in enumerate(get_archive_formats()):
-            archive_choices.append((str(i), f[0]),)
-        if len(archive_choices) > 1:
-            archive_choices.insert(0, ('', '---'))
-        self.fields['archive_format'].choices = archive_choices
-
-
-
-class TemplateFormatForm(ExportForm):
-    file_format = forms.ChoiceField(
-        label=_('Template format'),
-        choices=(),
-        )
-
-    def __init__(self, formats, *args, **kwargs):
-        ExportForm.__init__(self, formats, *args, **kwargs)
-
-
 class UserSignUpForm(UserCreationForm):
     first_name = forms.CharField(max_length=20, required=False)
     last_name = forms.CharField(max_length=20, required=False)
