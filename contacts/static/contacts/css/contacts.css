@@ -1,0 +1,159 @@
+@import url(http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css);
+body {
+    font-family: "Boboto", sans-serif;
+}
+.navbar-inverse {
+    background-color:#2a56c6;
+    background-image: none;
+    font-style: normal;
+    font-variant-ligatures: normal;
+    font-variant-caps: normal;
+    font-variant-numeric: normal;
+    font-weight: 300;
+    font-stretch: normal;
+    font-size: 18px;
+    line-height: 27px;
+    font-family: Roboto, RobotoDraft, Arial, sans-serif;
+    text-shadow: none;
+    width:100%;
+}
+
+.navbar-inverse .navbar-brand {
+    text-shadow: none;
+    color:white;
+    text-align: center;
+    letter-spacing: 1;
+    padding-top: 20;
+}
+
+.navbar-brand {
+    min-width: 200px;
+}
+.navbar {
+    border:none;
+    margin-bottom: 0px;
+    min-height: 50px;
+    min-width: 320px;
+    border-radius:0;
+}
+.navbar-form {
+    position: relative;
+    width: 700px;
+    padding-left: 100px;
+}
+.form-group {
+    position: relative;
+    padding-left: 10px;
+}
+
+.form-group .icon{
+  position: absolute;
+  top: 30%;
+  margin-left: 5px;
+  margin-bottom: 20px;
+  z-index: 1;
+  color: white;
+  font-size: 15px;
+}
+
+.form-control {
+    background: #5879d0;
+    min-width: 500px;
+    width: 600px;
+    height: 50px;
+    white-space: nowrap;
+    float: left;
+    padding-left: 30px;
+    font-size: 15px;
+    border: 0px;
+}
+
+.form-control:hover, .form-control:focus, .form-control:active{
+    outline:none;
+    background: #ffffff;
+}
+
+.form-control::-webkit-input-placeholder {
+   color: #e7eaf1;
+}
+ 
+.form-control::-moz-placeholder { /* Firefox 18- */
+   color: #e7eaf1;  
+}
+ 
+.form-control::-moz-placeholder {  /* Firefox 19+ */
+   color: #e7eaf1;  
+}
+ 
+.form-control::-ms-input-placeholder {  
+   color: #e7eaf1;  
+}
+
+.navbar-inverse .navbar-nav {
+    text-align: center;
+    letter-spacing: 1;
+    padding-right: 15px;
+    padding-top: 2px;    
+}
+
+.navbar-inverse .navbar-nav>li>a {
+    text-shadow: none;
+    color:white;
+}
+
+.navbar-nav.navbar-right:last-child {
+    margin-right: 0px;
+}
+.navbar-nav>li>a {
+    padding: 12px 0 0 0;
+}
+
+.container {
+    padding-left: 0;
+    margin-left: 0;
+}
+    
+.table {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+table.table {
+    border-bottom: none;
+}
+
+#contact_photo {
+    border-radius: 50%;
+}
+#help_text {
+    color: darkgray;
+}
+#username {
+    margin: 0 0;
+    font-size: small;
+    font-weight: 300;
+    color: white;
+}
+
+.container1 span.checkbox::before {
+  width: 27px;
+  height: 27px;
+  background-color: #fff;
+  left: -35px;
+  box-sizing: border-box;
+  border: 3px solid transparent;
+  transition: border-color .2s;
+}
+.container1 span.checkbox:hover::before {
+  border: 3px solid #F0FF76;
+}
+.container1 span.checkbox::after {
+  content: '\f00c';
+  left: -31px;
+  top: 2px;
+  color: transparent;
+  transition: color .2s;
+}
+input[type="checkbox"]:checked + label span.checkbox::after {
+  color: #62AFFF;
+}

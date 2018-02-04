@@ -11,20 +11,22 @@
                     <form action="" method="POST">
                         {% csrf_token %}
                             <fieldset class="module aligned">
-                                {%  for field in form %}
-                                <div class="form-row">
-                                    {{ field.label }}
-                                    {{ field.errors }}
-                                    {{ field }}
-                                </div>
-                                {% endfor %}
+                            {%  for field in form %}
+                            <div class="form-row">
+                            <label>
+                            {{ field.label }}
+                            </label>
+                            {{ field.errors }}
+                            {{ field }}
+                            </div>
+                            {% endfor %}
                             </fieldset>
                         <div class="submit-row">
                              <input type="submit" class="default" value="Submit">
                         </div>
                     </form>
               </div>
+            </div>
           </div>
-        </div>
     </div>
 {% endblock %}

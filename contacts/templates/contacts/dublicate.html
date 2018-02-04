@@ -12,7 +12,7 @@
 
 {% block content %}
 {% load static %}
-<script src="{% static 'js/scripts.js' %}"> </script>
+<script src="{% static 'contacts/js/scripts.js' %}"> </script>
     <div class="container-fluid">
         <div class="row">
             {% include 'contacts/sidebar.html' %}
@@ -26,12 +26,8 @@
                         {% ifchanged contact.mobile %}
                             {% if not forloop.first %}
                                 <tr>
-                                    <td>
-        {#                                <form action="{% url 'merge_dublicates' %}" method="POST">#}
-        {#                                    {% csrf_token %}#}
-                                            <div class="submit-row">
-                                                 <input type="submit" class="default" value="Merge">
-                                            </div>
+                                    <td colspan="6">
+                                        <input type="submit" class="default" value="Merge">
                                     </td>
                                 </tr>
                             {% endif %}
@@ -43,7 +39,9 @@
                             {% endif %}
                         </td>
                         <td> <input type="checkbox" name="contact_id" value="{{ contact.id }}" </td>
-                        <td>{{ contact.lastname }} {{ contact.firstname }} {{ contact.secondname }}</td>
+                        <td>{% if contact.lastname %} {{contact.lastname}} {% endif %}
+                            {{ contact.firstname }}
+                            {% if contact.secondname %}{{ contact.secondname }} {% endif %}</td>
                         <td> {% if contact.email %}
                              {{ contact.email }}
                             {% endif %}
@@ -62,10 +60,8 @@
                         </tr>
                         {% if forloop.last %}
                         <tr>
-                                <td>
-                                        <div class="submit-row">
-                                             <input type="submit" class="default" value="Merge">
-                                        </div>
+                                <td colspan="6">
+                                    <input type="submit" class="default" value="Merge">
                                 </td>
                         </tr>
                         {% endif %}

@@ -4,6 +4,10 @@ from django.db.models.signals import post_save, post_init
 from django.dispatch import receiver
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
+from io import BytesIO
 import imghdr
 
 #Validator for mobile number
@@ -31,10 +35,13 @@ def save_user_profile(sender, instance, **kwargs):
 class Contact(models.Model):
     owner = models.ForeignKey(User)
     firstname = models.CharField(max_length=30)
-    secondname = models.CharField(max_length=30)
-    lastname = models.CharField(max_length=40)
+    lastname = models.CharField(max_length=40, blank=True, null=True)
+    secondname = models.CharField(max_length=30, blank=True, null=True)
     mobile = models.CharField(max_length=15, validators=[mobile_regex])
-    home_phone = models.CharField(max_length=15, blank=True, null=True)
+    personal_phone = models.CharField(max_length=15, blank=True, null=True)
+    business_phone = models.CharField(max_length=4, blank=True, null=True)
+    company = models.CharField(max_length=15, blank=True, null=True)
+    position = models.TextField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     star = models.BooleanField(default=False)
@@ -45,15 +52,13 @@ class Contact(models.Model):
         return "%s %s" % (self.firstname, self.lastname)
 
     def delete(self, using=None, keep_parents=False):
-        print('----Calling delete method------')
         photos = self.contactphoto_set.all()
-        print('Candiate for Deleting photos:', photos)
         if photos:
             for photo in photos:
                 if photo.photo:
-                    print('Deleting photos:', photo)
-                    photo.photo.delete()
-                    photo.thumbnail.delete()
+                    default_storage.delete(photo.photo.name)
+                    # photo.photo.delete()
+                    # photo.thumbnail.delete()
         super(Contact, self).delete()
 
 class Dublicate(models.Model):
@@ -63,8 +68,7 @@ class Dublicate(models.Model):
     def __str__(self):
         return '%s %s %s' % (self.contact_id.firstname, self.contact_id.secondname, self.contact_id.mobile)
 
-
-# Return separate path directory for each user
+#Return separate path directory for each user
 def user_directory_path(instance, filename):
     return '{0}/{1}'.format(instance.contact.owner_id, filename)
 
@@ -96,6 +100,7 @@ class ContactPhoto(models.Model):
         from contact.settings import THUMB_SIZE
         from django.core.files.uploadedfile import SimpleUploadedFile
         import os
+        import random, string
 
         thumb_extension = os.path.splitext(self.photo.name)[1].lower()
         if thumb_extension in ['.jpg', '.jpeg']:
@@ -111,24 +116,24 @@ class ContactPhoto(models.Model):
         img.save(tmp_handle, PIL_TYPE)
         tmp_handle.seek(0)
         suf = SimpleUploadedFile(os.path.split(self.photo.name)[-1], tmp_handle.read())
+        thumb_name = '%s_thumbnail%s' % (os.path.splitext(suf.name)[0], thumb_extension)
+        thumb_path = '{}/{}'.format(self.contact.owner.id, thumb_name)
+        if default_storage.exists(thumb_path):
+            random_choice = lambda n: ''.join([random.choice(string.ascii_lowercase) for i in range(n)])
+            random_str = random_choice(4)
+            thumb_name = '%s_thumbnail_%s%s' % (os.path.splitext(suf.name)[0], random_str, thumb_extension)
         self.thumbnail.save(
-            '%s_thumbnail%s' % (os.path.splitext(suf.name)[0], thumb_extension),
+            thumb_name,
+            # '%s_thumbnail%s' % (os.path.splitext(suf.name)[0], thumb_extension),
             suf, save=False
         )
+        self.photo = self.thumbnail
 
     def save(self, *args, **kwargs):
-        # Make thumbnail only if photo field was changed
+        #Make thumbnail only if photo field was changed
         if self.photo != self.__original_photo:
             self.create_thumbnail()
         super(ContactPhoto, self).save()
-
-    # def delete(self, using=None, keep_parents=False):
-
-
-
-
-
-
 
 
 
