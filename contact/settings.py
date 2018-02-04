@@ -158,10 +158,13 @@ USE_TZ = True
 
 
 # static files (CSS, JavaScript, Images)
-GS_BUCKET_NAME = '186811' # the name of the bucket you have created from the google cloud storage console
-GS_PROJECT_ID = 'proven-center-186811'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+STATIC_URL = '/static/'
+
+# DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 # STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # STATICFILES_DIRS = [
