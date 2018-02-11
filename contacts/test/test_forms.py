@@ -11,7 +11,8 @@ class TestContactForm(TestCase):
 
     def test_contact_form_has_fields(self):
         form = ContactForm()
-        expected = ['firstname', 'secondname', 'lastname', 'mobile', 'home_phone', 'address', 'email', 'star']
+        expected = ['firstname', 'lastname', 'secondname', 'mobile', 'personal_phone', 'business_phone',
+                    'company', 'position', 'address', 'email', 'star']
         result = list(form.fields)
         self.assertEqual(expected, result)
 
@@ -19,7 +20,7 @@ class TestContactForm(TestCase):
         form = ContactForm()
         self.assertEqual(form._meta.exclude, ['owner'], 'Exclude list is wrong')
         self.assertEqual(form._meta.labels['mobile'], 'Mobile phone')
-        self.assertEqual(form._meta.labels['home_phone'], 'Home phone')
+        self.assertEqual(form._meta.labels['personal_phone'], 'Personal phone')
         self.assertEqual(form._meta.labels['star'], 'Favorite')
         widgets = form._meta.widgets
         field_attr = widgets['firstname'].attrs
@@ -28,9 +29,9 @@ class TestContactForm(TestCase):
         self.assertEqual(field_attr, {'placeholder': 'Second', 'class': 'field-divided'})
         field_attr = widgets['lastname'].attrs
         self.assertEqual(field_attr, {'placeholder': 'Last', 'class': 'field-divided'})
-        field_attr = widgets['mobile'].attrs
-        self.assertEqual(field_attr, {'class': 'field-long'})
-        field_attr = widgets['home_phone'].attrs
+        # field_attr = widgets['mobile'].attrs
+        # self.assertEqual(field_attr, {'class': 'field-long'})
+        field_attr = widgets['personal_phone'].attrs
         self.assertEqual(field_attr, {'class': 'field-long'})
         field_attr = widgets['address'].attrs
         self.assertEqual(field_attr, {'class': 'field-long field-textarea'})

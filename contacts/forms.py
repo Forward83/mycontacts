@@ -67,14 +67,14 @@ class ContactForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['owner']
         labels = {'mobile': _('Mobile phone'),
-                  'home_phone': _('Home phone'),
+                  'personal_phone': _('Personal phone'),
                   'star': _('Favorite'),
                   }
         widgets = {'firstname': TextInput(attrs={'placeholder': 'First', 'class': 'field-divided'}),
                   'secondname': TextInput(attrs={'placeholder': 'Second', 'class': 'field-divided'}),
                   'lastname': TextInput(attrs={'placeholder': 'Last', 'class': 'field-divided'}),
                   # 'mobile': TextInput(attrs={'class': 'field-long'}),
-                  'home_phone': TextInput(attrs={'class': 'field-long'}),
+                  'personal_phone': TextInput(attrs={'class': 'field-long'}),
                   'position': TextInput(attrs={'class': 'field-long field-textarea'}),
                   'address': TextInput(attrs={'class': 'field-long field-textarea'}),
                   'email': TextInput(attrs={'class': 'field-long'}),

@@ -87,10 +87,10 @@ class ContactDetailViewTests(APITestCase):
         self.client.login(username='testuser1', password='testpassword1')
         cl = Contact.objects.get(firstname='test0')
         url = reverse('contact-detail', kwargs={'pk': cl.id})
-        resp = self.client.put(url, {'home_phone': '+380(44)2386638'})
+        resp = self.client.put(url, {'personal_phone': '+380(44)2386638'})
         resp_data = json.loads(resp.content.decode('utf-8'))
         cl = Contact.objects.get(firstname='test0')
-        self.assertEqual(cl.home_phone, resp_data.get('home_phone'))
+        self.assertEqual(cl.personal_phone, resp_data.get('personal_phone'))
 
     def test_authorized_user_delete_access(self):
         self.client.login(username='testuser1', password='testpassword1')

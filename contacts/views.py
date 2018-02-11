@@ -120,7 +120,7 @@ def sign_up(request):
 @login_required(login_url='/login/')
 def contact_list(request):
     user = request.user
-    user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'firstname')
+    user_contacts = Contact.objects.filter(owner=user).order_by('-star', 'lastname')
     user_contacts_last_thumb = [(contact, contact.contactphoto_set.first()) for contact in user_contacts]
     contact_count = user_contacts.count()
     dublicate_count = find_dublicates(request)
@@ -304,9 +304,13 @@ def import_contacts(request):
                         import_nums.remove(num - 1)
                     imported_data = imported_data.subset(import_nums)
                 # contact_resource.import_data(imported_data, dry_run=False)
-                list_dir = default_storage.listdir(base_dir)
-                for file in list_dir[1]:
-                    default_storage.delete(os.path.join(base_dir, file))
+                # Deleting img from tmp, if exists
+                try:
+                    list_dir = default_storage.listdir(base_dir)
+                    for file in list_dir[1]:
+                        default_storage.delete(os.path.join(base_dir, file))
+                except FileNotFoundError:
+                    pass
                 success_qty = imported_data.height
                 error_qty = len(del_inform)
                 return render(request, 'contacts/import_form.html', {'errors': del_inform,
