@@ -458,8 +458,7 @@ class ExportContactViewTest(TestCase):
             firstname = secondname = lastname = 'test' + str(i)
             Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
                                    mobile=mobile, star=star)
-        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123', lastname='test123',
-                              mobile=mobile, star=star)
+        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123',     lastname='test123', mobile=mobile, star=star)
         _time = datetime.now().strftime('%Y-%m-%d')
         _model = 'Contact'
         file_ext = 'xlsx'
@@ -473,7 +472,6 @@ class ExportContactViewTest(TestCase):
         self.assertFalse(user2_contact.id in exported_data['id'])
 
     def test_html_export_successful(self):
-
         num_of_contacts = 10
         star = False
         mobile = '+380(67)2162478'
