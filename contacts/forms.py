@@ -1,4 +1,3 @@
-from django.forms import BaseInlineFormSet, inlineformset_factory, Form
 from django import forms
 from django.forms.widgets import TextInput
 from django.utils.translation import gettext_lazy as _
@@ -8,18 +7,18 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from import_export.forms import ExportForm, ImportForm
-from shutil import get_archive_formats
-from io import BytesIO
-from contact.settings import ARCHIVE_FORMAT_FOR_IMPORT
 from contact.settings import MAX_SIZE_PHOTO_ARCHIVE
 
-def photo_file_size(value): # validator for archive photo field
+
+def photo_file_size(value):  # validator for archive photo field
     limit = MAX_SIZE_PHOTO_ARCHIVE
     if value.size > limit:
         raise ValidationError('File too large. Size should not exceed {} B.'.format(MAX_SIZE_PHOTO_ARCHIVE))
 
+
 class ImportFileFolderForm(ImportForm):
-    photo_file = forms.FileField(label=_('Select archive file with photos'), required=False, validators=[photo_file_size])
+    photo_file = forms.FileField(label=_('Select archive file with photos'),
+                                 required=False, validators=[photo_file_size])
     archive_format = forms.ChoiceField(
         label=_('Archive format'),
         choices=(),
@@ -61,6 +60,7 @@ class UserSignUpForm(UserCreationForm):
                    'last_name': TextInput(attrs={'class': 'field-long'}),
                    'email': TextInput(attrs={'class': 'field-long'})}
 
+
 class ContactForm(forms.ModelForm):
     class Meta:
         model = Contact
@@ -73,15 +73,15 @@ class ContactForm(forms.ModelForm):
         widgets = {'firstname': TextInput(attrs={'placeholder': 'First', 'class': 'field-divided'}),
                   'secondname': TextInput(attrs={'placeholder': 'Second', 'class': 'field-divided'}),
                   'lastname': TextInput(attrs={'placeholder': 'Last', 'class': 'field-divided'}),
-                  # 'mobile': TextInput(attrs={'class': 'field-long'}),
                   'personal_phone': TextInput(attrs={'class': 'field-long'}),
                   'position': TextInput(attrs={'class': 'field-long field-textarea'}),
                   'address': TextInput(attrs={'class': 'field-long field-textarea'}),
                   'email': TextInput(attrs={'class': 'field-long'}),
-                  }
+                   }
         help_texts = {
                     'mobile': 'Format: +380(67)XXXXXXX'
             }
+
 
 class ContactPhotoForm(forms.ModelForm):
     class Meta:
@@ -89,11 +89,11 @@ class ContactPhotoForm(forms.ModelForm):
         fields = ['photo']
         labels = {'photo': _('Profile photo')}
 
- #Custom validation of file size. Reject file > PHOTO_SIZE (in settings) during upload
+# Custom validation of file size. Reject file > PHOTO_SIZE (in settings) during upload
     def clean_photo(self):
         img = self.cleaned_data.get('photo', False)
         if img:
-            #Imagefield object can take different type, which depends on existence of the file
+            # ImageField object can take different type, which depends on existence of the file
             try:
                 img_size = img._size
             except AttributeError:

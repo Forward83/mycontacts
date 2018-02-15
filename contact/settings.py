@@ -15,7 +15,8 @@ import dj_database_url
 from django.conf.global_settings import MEDIA_ROOT, MEDIA_URL
 from import_export.formats import base_formats
 from decouple import config, Csv
-import zipfile, tarfile
+import zipfile
+import tarfile
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,6 +38,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 INSTALLED_APPS = [
     'contacts',
+    'api',
     'django_nose',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,7 +55,6 @@ INSTALLED_APPS = [
 PROJECT_APPS = ('contacts', 'api',)
 JENKINS_TASKS = ('django_jenkins.tasks.run_pylint',
                  'django_jenkins.tasks.run_pep8',
-                 'django_jenkins.tasks.with_coverage',
                  'django_jenkins.tasks.run_pyflakes',)
 
 # Use nose to run all tests
@@ -108,14 +109,6 @@ DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL')
     )
-    #    'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'contacts',
-    #     'USER': 'mycontact',
-    #     'PASSWORD': 'P@ssw0rd123',
-    #     'HOST': '35.198.128.5',   # Or an IP Address that your DB is hosted on
-    #     'PORT': '3306',
-    # }
 }
 
 
@@ -161,11 +154,11 @@ LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
 MEDIA_URL = '/media/'
-#Size for creating thumbnail
+# Size for creating thumbnail
 THUMB_SIZE = (125, 125)
-#Maximum allowed photo size
+# Maximum allowed photo size
 PHOTO_SIZE = 2*1024*1024
-#Default formats for import-export actions
+# Default formats for import-export actions
 DEFAULT_FORMATS_FOR_EXPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX, base_formats.HTML)
 DEFAULT_FORMATS_FOR_IMPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX)
 ARCHIVE_FORMAT_FOR_IMPORT = (('zip',), ('tar',), ('tar.gz',),)

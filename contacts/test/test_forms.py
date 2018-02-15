@@ -1,11 +1,9 @@
 from django.test import TestCase
 from contacts.forms import ContactForm, ContactPhotoForm, UserSignUpForm
-from contacts.models import Contact
-from django.contrib.auth.models import User
 from contact.settings import BASE_DIR
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.forms.widgets import TextInput
 import os
+
 
 class TestContactForm(TestCase):
 
@@ -29,8 +27,6 @@ class TestContactForm(TestCase):
         self.assertEqual(field_attr, {'placeholder': 'Second', 'class': 'field-divided'})
         field_attr = widgets['lastname'].attrs
         self.assertEqual(field_attr, {'placeholder': 'Last', 'class': 'field-divided'})
-        # field_attr = widgets['mobile'].attrs
-        # self.assertEqual(field_attr, {'class': 'field-long'})
         field_attr = widgets['personal_phone'].attrs
         self.assertEqual(field_attr, {'class': 'field-long'})
         field_attr = widgets['address'].attrs
@@ -38,6 +34,7 @@ class TestContactForm(TestCase):
         field_attr = widgets['email'].attrs
         self.assertEqual(field_attr, {'class': 'field-long'})
         self.assertEqual(form._meta.help_texts['mobile'], 'Format: +380(67)XXXXXXX')
+
 
 class TestContactPhotoForm(TestCase):
 
@@ -65,6 +62,7 @@ class TestContactPhotoForm(TestCase):
             form_photo = {'photo': photo_field}
             form = ContactPhotoForm(files=form_photo)
             self.assertFalse(form.is_valid())
+
 
 class TestUserSignUpForm(TestCase):
 

@@ -4,12 +4,11 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 import shutil
-from django.core.files import File
 import os
 from contact.settings import BASE_DIR, MEDIA_ROOT
 # Create your tests here.
 
-# models tests
+
 class TestContactModel(TestCase):
 
     @classmethod
@@ -50,7 +49,6 @@ class TestContactPhotoModel(TestCase):
                      mobile='+380(67)2162478')
 
     def test_create_thumbnail(self):
-        user = User.objects.get(username='testuser')
         contact = Contact.objects.get(firstname='test')
         contact_photo = ContactPhoto(contact=contact)
         contact_photo.save()

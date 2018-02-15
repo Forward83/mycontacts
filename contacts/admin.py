@@ -7,7 +7,8 @@ from import_export.widgets import ForeignKeyWidget
 from import_export.admin import ImportExportModelAdmin
 from django.forms import ValidationError
 from django.core.files.storage import default_storage
-import re, os
+import re
+import os
 
 
 def path_to_archieve(base_dir):
@@ -32,10 +33,11 @@ class ContactResource(resources.ModelResource):
 
     def for_delete(self, row, instance):
         mobile = str(row['mobile'])
-        macth = re.match(r'^\+380\([0-9]{2}\)[0-9]{7}$', mobile)
-        if not macth:
+        match = re.match(r'^\+380\([0-9]{2}\)[0-9]{7}$', mobile)
+        if not match:
             print('Error in phone number')
-            raise ValidationError("Phone number must be entered in the format: '+380(67)9999999'. Up to 15 digits allowed. "
+            raise ValidationError("Phone number must be entered in the format: "
+                                  "'+380(67)9999999'. Up to 15 digits allowed. "
                                   "Error in row with id = %s" % row['id'], code='invalid_mobile'
                                   )
         return False
@@ -67,18 +69,18 @@ class ContactResource(resources.ModelResource):
                 instance.save()
         self.after_save_instance(instance, using_transactions, dry_run)
 
+
 class ContactAdmin(ImportExportModelAdmin):
     resource_class = ContactResource
 
-#for exporting photo files as zip
+
 class ContactPhotoResource(resources.ModelResource):
     class Meta:
         model = ContactPhoto
         fields = ('contact', 'photo')
 
-# Register your models here.
 
-# admin.site.register(Contact)
+# Register your models here.
 admin.site.register(Contact, ContactAdmin)
 admin.site.register(ContactPhoto)
 admin.site.register(Dublicate)

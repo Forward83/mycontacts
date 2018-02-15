@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsOwner(permissions.BasePermission):
     """
     Custom permission to allow edit object only to its owner

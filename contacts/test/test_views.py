@@ -1,23 +1,19 @@
-from django.test import TestCase, RequestFactory
+from django.test import TestCase
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
-from import_export.forms import ExportForm
 from import_export.formats import base_formats
 from contacts.models import Contact, Profile, ContactPhoto, user_directory_path, Dublicate
 from django.urls import resolve
 from contacts.views import new_contact, sign_up, remove_contact, export_contacts, import_contacts, dublicate_list
-from contacts.forms import ContactForm, ContactPhotoForm
 from django.core.files.uploadedfile import SimpleUploadedFile
-from contact.settings import BASE_DIR, MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT
-from contacts.forms import ContactForm, ContactPhotoForm
+from contact.settings import BASE_DIR, MEDIA_ROOT
 from datetime import datetime
-import os, io
+import os
 import shutil
-from html.parser import HTMLParser
-import csv
 from bs4 import BeautifulSoup
+
 
 class ContactListViewTest(TestCase):
 
@@ -51,7 +47,7 @@ class ContactListViewTest(TestCase):
         self.assertRedirects(resp, '/login/?next=/')
 
     def test_logged_in_user_see_his_her_contact_list(self):
-        login = self.client.login(username='testuser1', password='testpassword1')
+        self.client.login(username='testuser1', password='testpassword1')
         user = User.objects.get(username='testuser1')
         resp = self.client.get(reverse('contact_list'))
         self.assertEqual(resp.status_code, 200)
@@ -60,7 +56,7 @@ class ContactListViewTest(TestCase):
             self.assertEqual(len(resp.context['user_contacts']), 15)
 
     def test_correct_ordering(self):
-        login = self.client.login(username='testuser1', password='testpassword1')
+        self.client.login(username='testuser1', password='testpassword1')
         resp = self.client.get(reverse('contact_list'))
         first_five = resp.context['user_contacts'][:5]
         for contact, thumb in first_five:
@@ -73,13 +69,14 @@ class ContactListViewTest(TestCase):
                 self.assertTrue(contact_lastname < contact.lastname)
 
     def test_used_template_and_context_usage(self):
-        login = self.client.login(username='testuser1', password='testpassword1')
+        self.client.login(username='testuser1', password='testpassword1')
         resp = self.client.get(reverse('contact_list'))
         self.assertEqual(resp.context['user'].username, 'testuser1')
         self.assertTemplateUsed(resp, 'contacts/main.html')
         self.assertTrue('user_contacts' in resp.context)
         self.assertTrue('count' in resp.context)
         self.assertTrue('user_contacts' in resp.context)
+
 
 class SignUpViewTest(TestCase):
 
@@ -101,7 +98,8 @@ class SignUpViewTest(TestCase):
         form = self.resp.context.get('form')
         self.assertIsInstance(form, UserCreationForm)
 
-class SuccessfullSignupTests(TestCase):
+
+class SuccessfulSignupTests(TestCase):
 
     def setUp(self):
         data = {'username': 'testuser',
@@ -124,6 +122,7 @@ class SuccessfullSignupTests(TestCase):
         response = self.client.get(self.home_url)
         user = response.context.get('user')
         self.assertTrue(user.is_authenticated())
+
 
 class InvalidSignupTests(TestCase):
 
@@ -158,6 +157,7 @@ class InvalidSignupTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, 'registration/signup.html')
 
+
 class NewContactViewTest(TestCase):
 
     @classmethod
@@ -191,16 +191,6 @@ class NewContactViewTest(TestCase):
         self.client.login(username='testuser', password='testpassword')
         resp = self.client.get(reverse('new_contact'))
         self.assertContains(resp, 'csrfmiddlewaretoken')
-
-    # def test_response_contain_forms(self):
-    #     self.client.login(username='testuser', password='testpassword')
-    #     resp = self.client.get(reverse('new_contact'))
-    #     part1 = resp.context.get('part1')
-    #     part2 = resp.context.get('part2')
-    #     contact_form_fields = part1 + part2
-    #     contact_photo_form = resp.context.get('photo_form')
-    #     self.assertEqual(contact_form_fields, list(ContactForm().fields))
-    #     self.assertIsInstance(contact_photo_form, ContactPhotoForm)
 
     def test_view_invalid_wrong_post_data(self):
         self.client.login(username='testuser', password='testpassword')
@@ -252,6 +242,7 @@ class NewContactViewTest(TestCase):
         if os.path.exists(folder_path):
             shutil.rmtree(os.path.normpath(folder_path))
 
+
 class EditContactViewTest(TestCase):
 
     @classmethod
@@ -292,8 +283,6 @@ class EditContactViewTest(TestCase):
         data = model_to_dict(contact, fields=['owner', 'firstname', 'secondname', 'lastname', 'mobile'])
         url = reverse('edit_contact', kwargs={'pk': contact.pk})
         resp = self.client.post(url, data)
-        # form = resp.context.get('form', None)
-        # print('form errors: ', form.errors)
         self.assertRedirects(resp, reverse('contact_list'))
 
     def test_correct_template_used(self):
@@ -302,12 +291,13 @@ class EditContactViewTest(TestCase):
         resp = self.client.post(reverse('edit_contact', kwargs={'pk': contact.id}))
         self.assertTemplateUsed(resp, 'contacts/contact_form.html')
 
+
 class RemoveContactViewTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='password')
-        self.contact = Contact.objects.create(owner=self.user, firstname='test', secondname='test', lastname='test',
-                     mobile='+380(67)2162478')
+        self.contact = Contact.objects.create(owner=self.user, firstname='test', secondname='test',
+                                              lastname='test', mobile='+380(67)2162478')
         self.url = reverse('remove_contact', kwargs={'pk': self.contact.pk})
         self.home = reverse('contact_list')
 
@@ -316,7 +306,6 @@ class RemoveContactViewTest(TestCase):
         resp = self.client.post(self.url)
         self.assertEqual(resp.status_code, 302)
         self.assertRedirects(resp, self.home)
-
 
     def test_correct_view_is_called(self):
         view = resolve(self.url)
@@ -338,15 +327,11 @@ class RemoveContactViewTest(TestCase):
             photo_field = SimpleUploadedFile(photo_fname, img.read())
             contact_photo_instance.photo = photo_field
             contact_photo_instance.save()
-        # saved_photo_path = os.path.join(MEDIA_ROOT, user_directory_path(contact_photo_instance, photo_fname))
-        # saved_photo_path = os.path.normpath(saved_photo_path)
         saved_thumb_path = os.path.join(MEDIA_ROOT, user_directory_path(contact_photo_instance, thumb_fname))
         saved_thumb_path = os.path.normpath(saved_thumb_path)
-        # self.assertTrue(os.path.exists(saved_photo_path))
         self.assertTrue(os.path.exists(saved_thumb_path))
         self.client.login(username='testuser', password='password')
         self.client.post(self.url)
-        # self.assertFalse(os.path.exists(saved_photo_path))
         self.assertFalse(os.path.exists(saved_thumb_path))
 
     def test_not_owner_user_redirection(self):
@@ -370,6 +355,7 @@ class RemoveContactViewTest(TestCase):
         folder_path = '{}/{}'.format(MEDIA_ROOT, self.user.id)
         if os.path.exists(folder_path):
             shutil.rmtree(os.path.normpath(folder_path))
+
 
 class ExportContactViewTest(TestCase):
 
@@ -458,7 +444,8 @@ class ExportContactViewTest(TestCase):
     #         firstname = secondname = lastname = 'test' + str(i)
     #         Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
     #                                mobile=mobile, star=star)
-    #     user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123',     lastname='test123', mobile=mobile, star=star)
+    #     user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123',
+    #                                           lastname='test123', mobile=mobile, star=star)
     #     _time = datetime.now().strftime('%Y-%m-%d')
     #     _model = 'Contact'
     #     file_ext = 'xlsx'
@@ -479,8 +466,8 @@ class ExportContactViewTest(TestCase):
             firstname = secondname = lastname = 'test' + str(i)
             Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
                                    mobile=mobile, star=star)
-        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123', lastname='test123',
-                              mobile=mobile, star=star)
+        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123',
+                                               lastname='test123', mobile=mobile, star=star)
         _time = datetime.now().strftime('%Y-%m-%d')
         _model = 'Contact'
         file_ext = 'html'
@@ -495,6 +482,7 @@ class ExportContactViewTest(TestCase):
         _val = [cell.string for cell in data]
         self.assertFalse(user2_contact.id in _val)
         self.assertEqual(len(rows), 11)
+
 
 class ImportContactViewTest(TestCase):
 
@@ -550,7 +538,7 @@ class ImportContactViewTest(TestCase):
         with open(file_path, 'rb') as fh:
             input_file = SimpleUploadedFile('Contact-import.csv', fh.read())
             data = {'import': True, 'import_file': input_file,
-                'input_format': 0}
+                    'input_format': 0}
             resp = self.client.post(reverse('import_contact'), data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(Contact.objects.count(), 14)
@@ -570,7 +558,6 @@ class ImportContactViewTest(TestCase):
             resp = self.client.post(reverse('import_contact'), data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(Contact.objects.count(), 14)
-        # Check owner for imported contacts
         query_set = Contact.objects.all()[11:]
         for obj in query_set:
             self.assertEqual(obj.owner, user)
@@ -587,10 +574,10 @@ class ImportContactViewTest(TestCase):
             resp = self.client.post(reverse('import_contact'), data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(Contact.objects.count(), 14)
-        # Check owner for imported contacts
         query_set = Contact.objects.all()[11:]
         for obj in query_set:
             self.assertEqual(obj.owner, user)
+
 
 class DublicateListViewTest(TestCase):
     def setUp(self):
@@ -654,14 +641,14 @@ class DublicateListViewTest(TestCase):
         for i in range(0, 4):
             name = 'test%s' % (i,)
             if i % 2:
-                contact = Contact.objects.create(owner=self.user, firstname=name, secondname=name, lastname=name,
-                                       mobile=mobile)
+                contact = Contact.objects.create(owner=self.user, firstname=name, secondname=name,
+                                                 lastname=name, mobile=mobile)
             else:
-                contact = Contact.objects.create(owner=self.user, firstname=name, secondname=name, lastname=name,
-                                       mobile=mobile1)
+                contact = Contact.objects.create(owner=self.user, firstname=name, secondname=name,
+                                                 lastname=name, mobile=mobile1)
             ids.append(contact.id)
-        contact4 = Contact.objects.create(owner=self.user, firstname='test4', secondname='test4', lastname='test4',
-                               mobile='+380(97)3500139')
+        contact4 = Contact.objects.create(owner=self.user, firstname='test4', secondname='test4',
+                                          lastname='test4', mobile='+380(97)3500139')
         self.client.get(self.url)
         ids = ids[:2]
         data ={'contact_id': ids}
@@ -671,9 +658,3 @@ class DublicateListViewTest(TestCase):
         ids.append(contact4.id)
         for item in Contact.objects.all():
             self.assertTrue(item.pk in ids)
-
-
-
-
-
-

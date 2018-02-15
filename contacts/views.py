@@ -1,9 +1,4 @@
-import codecs
-import csv
 import os
-import zipfile, tarfile
-import collections
-from io import BytesIO
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.http import HttpResponse
@@ -11,21 +6,24 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from .admin import ContactResource, ContactPhotoResource
+from .admin import ContactResource
 from .forms import ContactForm, ContactPhotoForm, UserSignUpForm, TemplateFormatForm, ImportFileFolderForm
 from .models import Contact, ContactPhoto, Dublicate
-from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT, ARCHIVE_FORMAT_FOR_IMPORT
-from import_export.forms import ExportForm, ImportForm
-from import_export.admin import ExportMixin
+from contact.settings import DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT, ARCHIVE_FORMAT_FOR_IMPORT
+from import_export.forms import ExportForm
 from datetime import datetime
-import csv
 from io import TextIOWrapper
-import shutil
-from tablib import Dataset
 
 # Create your views here.
 
+
 def find_dublicates(request, create=False):
+    """
+    Find dublicated Contact instances by mobile phone.
+    :param request: http request
+    :param create: If create recorders Dublicates instances in DB
+    :return: total q-ty of dublicated instances
+    """
     if create:
         Dublicate.objects.all().delete()
     total_count = 0
@@ -34,7 +32,6 @@ def find_dublicates(request, create=False):
     qs_length = query_set.count()
     index = 0
     while index < qs_length:
-        # print(query_set)
         mobile = query_set[index].mobile
         objects = query_set.filter(mobile=mobile)
         count = objects.count()
@@ -46,13 +43,14 @@ def find_dublicates(request, create=False):
         index += count
     return total_count
 
+
 def extract_archive(input_archive, archive_format, base_dir):
     """
     Extract uploaded archive file to base_dir directory. Supported archive types pointed in settings
     :param input_archive: file object
-    :param archive_format:
-    :param user_id:
-    :return:
+    :param archive_format: archive type
+    :param base_dir: directory of particularly user
+    :return: extract files of input archive to user directory
     """
     if archive_format == 'zip':
         import zipfile
@@ -72,7 +70,6 @@ def extract_archive(input_archive, archive_format, base_dir):
             file_path = os.path.join(base_dir, os.path.basename(name.name))
             file_obj = input_file.extractfile(name)
             default_storage.save(file_path, ContentFile(file_obj.read()))
-
 
 
 def check_owner(view_func, redirect_url_name='login'):
@@ -137,11 +134,11 @@ def dublicate_list(request):
     return render(request, 'contacts/dublicate.html', {'dublicates': dublicates, 'count': contact_count,
                                                        'dublicate_count': dublicate_count, 'user': user})
 
+
 @login_required()
 def merge_dublicates(request):
     ids_from_form = request.POST.getlist('contact_id')
     mobiles = [item.mobile for item in Contact.objects.filter(id__in=ids_from_form)]
-    # print('------', mobiles, '-----')
     for_delete = Contact.objects.filter(mobile__in=mobiles).exclude(id__in=ids_from_form)
     for item in for_delete:
         item.delete()
@@ -155,7 +152,6 @@ def merge_dublicates(request):
 
 
 @check_owner
-# @login_required(login_url='/login/')
 def edit_contact(request, pk):
     """
     This view creates bounded Modelforms: Contact and ContactPhoto based on Contact pk parameter. It changes contact 
@@ -177,8 +173,6 @@ def edit_contact(request, pk):
             contact_photo.photo.delete()
             contact_photo.thumbnail.delete()
         if contact_form.is_valid() and contact_photo_form.is_valid():
-            fname = contact_photo_form.cleaned_data.get('photo', False)
-            # If there is uploaded file, update current row to 'active=False' and then create bound form with new instance
             contact_form.save()
             contact_photo_form.save()
             return redirect('contact_list')
@@ -220,13 +214,9 @@ def new_contact(request):
 # @login_required(login_url='/login/')
 def remove_contact(request, pk):
     contact_obj = get_object_or_404(Contact, pk=pk)
-    # contact_photos = contact_obj.contactphoto_set.all()
-    # for photo in contact_photos:
-    #     if photo.photo:
-    #         photo.photo.delete()
-    #         photo.thumbnail.delete()
     contact_obj.delete()
     return redirect('contact_list')
+
 
 @login_required
 def bulk_delete(request):
@@ -238,7 +228,6 @@ def bulk_delete(request):
         for item in query:
             item.delete()
     return redirect('contact_list')
-
 
 
 # view for export contacts
@@ -291,8 +280,6 @@ def import_contacts(request):
                     choice_num = form.cleaned_data.get('archive_format')
                     archive_format = archive_formats[int(choice_num)][0]
                     extract_archive(archive_file, archive_format, base_dir)
-                # result = contact_resource.import_data(imported_data, dry_run=True,
-                #                                       raise_errors=False)
                 result = contact_resource.import_data(imported_data, dry_run=False, collect_failed_rows=True,
                                                       use_transactions=False)
                 total_qty = imported_data.height
@@ -303,7 +290,6 @@ def import_contacts(request):
                         del_inform[num] = [error.error for error in errors]
                         import_nums.remove(num - 1)
                     imported_data = imported_data.subset(import_nums)
-                # contact_resource.import_data(imported_data, dry_run=False)
                 # Deleting img from tmp, if exists
                 try:
                     list_dir = default_storage.listdir(base_dir)

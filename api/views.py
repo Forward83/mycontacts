@@ -6,21 +6,16 @@ from .permissions import IsOwner
 from .serializers import ContactSerializer
 from contacts.models import Contact
 
-# from django.views.decorators.csrf import csrf_exempt
-# from rest_framework.renderers import JSONRenderer
-# from rest_framework.parsers import JSONParser
-# from django.http import HttpResponse, JsonResponse
 
 # Create your views here.
-
 @api_view(['GET'])
 def root_api(request, format=None):
     return Response({
         'contacts': reverse('contact-list', request=request, format=format),
     })
 
+
 class ContactList(generics.ListCreateAPIView):
-    # queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -30,8 +25,6 @@ class ContactList(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         return Contact.objects.filter(owner=user)
-
-    # def get(self, request, *args, **kwargs):
 
 
 class ContactDetail(generics.RetrieveUpdateDestroyAPIView):
