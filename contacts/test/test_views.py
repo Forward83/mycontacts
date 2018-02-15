@@ -449,27 +449,27 @@ class ExportContactViewTest(TestCase):
         self.assertEqual(exported_data.height, 10)
         self.assertFalse(user2_contact.id in exported_data['id'])
 
-    def test_xlsx_export_successful(self):
-        file_format = base_formats.XLSX()
-        num_of_contacts = 10
-        star = False
-        mobile = '+380(67)2162478'
-        for i in range(num_of_contacts):
-            firstname = secondname = lastname = 'test' + str(i)
-            Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
-                                   mobile=mobile, star=star)
-        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123',     lastname='test123', mobile=mobile, star=star)
-        _time = datetime.now().strftime('%Y-%m-%d')
-        _model = 'Contact'
-        file_ext = 'xlsx'
-        filename = '{}-{}.{}'.format(_model, _time, file_ext)
-        _content = 'attachment; filename = %s' % filename
-        resp = self.client.post(self.url, {'file_format': 2})
-        self.assertEqual(resp.get('Content-Disposition'), _content)
-        exported_data = resp.content
-        exported_data = base_formats.XLSX.create_dataset(file_format, exported_data)
-        self.assertEqual(exported_data.height, 10)
-        self.assertFalse(user2_contact.id in exported_data['id'])
+    # def test_xlsx_export_successful(self):
+    #     file_format = base_formats.XLSX()
+    #     num_of_contacts = 10
+    #     star = False
+    #     mobile = '+380(67)2162478'
+    #     for i in range(num_of_contacts):
+    #         firstname = secondname = lastname = 'test' + str(i)
+    #         Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
+    #                                mobile=mobile, star=star)
+    #     user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123',     lastname='test123', mobile=mobile, star=star)
+    #     _time = datetime.now().strftime('%Y-%m-%d')
+    #     _model = 'Contact'
+    #     file_ext = 'xlsx'
+    #     filename = '{}-{}.{}'.format(_model, _time, file_ext)
+    #     _content = 'attachment; filename = %s' % filename
+    #     resp = self.client.post(self.url, {'file_format': 2})
+    #     self.assertEqual(resp.get('Content-Disposition'), _content)
+    #     exported_data = resp.content
+    #     exported_data = base_formats.XLSX.create_dataset(file_format, exported_data)
+    #     self.assertEqual(exported_data.height, 10)
+    #     self.assertFalse(user2_contact.id in exported_data['id'])
 
     def test_html_export_successful(self):
         num_of_contacts = 10

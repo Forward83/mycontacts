@@ -7,6 +7,11 @@ django-filter==1.1.0
 django-import-export==0.5.1
 django-nose==1.4.5
 djangorestframework==3.7.1
+django-storages==1.6.5
+django-jenkins
+pep8
+pylint
+pyflakes
 html5lib==0.999
 httpie==0.9.9
 httplib2==0.9.1
