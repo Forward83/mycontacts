@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
 from django.urls import resolve
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.files import File
 from import_export.formats import base_formats
 from contacts.models import Contact, Profile, ContactPhoto, user_directory_path, Dublicate
 from contacts.views import new_contact, sign_up, remove_contact, export_contacts, import_contacts, dublicate_list
@@ -643,7 +642,7 @@ class ImportContactViewTest(TestCase):
             last_3 = Contact.objects.all().order_by('-id')[:3]
             [item.delete() for item in last_3]
 
-    def test_wrong_archive_import_fail(self):
+    def test_large_archive_import_fail(self):
         pass
 
     def test_download_csv_template_successful(self):

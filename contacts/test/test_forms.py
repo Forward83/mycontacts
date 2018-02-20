@@ -1,8 +1,8 @@
-from django.test import TestCase
-from contacts.forms import ContactForm, ContactPhotoForm, UserSignUpForm
-from contact.settings import BASE_DIR
-from django.core.files.uploadedfile import SimpleUploadedFile
 import os
+from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from contacts.forms import ContactForm, ContactPhotoForm, UserSignUpForm, ImportFileFolderForm
+from contact.settings import BASE_DIR, DEFAULT_FORMATS_FOR_IMPORT, ARCHIVE_FORMAT_FOR_IMPORT
 
 
 class TestContactForm(TestCase):
@@ -62,6 +62,28 @@ class TestContactPhotoForm(TestCase):
             form_photo = {'photo': photo_field}
             form = ContactPhotoForm(files=form_photo)
             self.assertFalse(form.is_valid())
+
+
+class TestImportFileFolderForm(TestCase):
+
+    def test_form_has_fields(self):
+        form = ImportFileFolderForm(DEFAULT_FORMATS_FOR_IMPORT,
+                                    ARCHIVE_FORMAT_FOR_IMPORT)
+        expected = ['import_file', 'input_format', 'photo_file', 'archive_format']
+        result = list(form.fields)
+        self.assertEqual(expected, result)
+
+    # def test_clean_form_with_large_archive(self):
+    #     fpath = os.path.join(BASE_DIR, 'contacts/fixtures/import file/Contact-import.xls')
+    #     fpath = os.path.normpath(fpath)
+    #     with open(fpath, 'rb') as fhandle:
+    #         import_file_field = SimpleUploadedFile('Contact_import.xls', fhandle.read())
+    #     import_file = {'import_file': import_file_field}
+    #     formats = (DEFAULT_FORMATS_FOR_IMPORT[1],)
+    #     form = ImportFileFolderForm(formats, ARCHIVE_FORMAT_FOR_IMPORT,
+    #                                 files=import_file)
+    #     print(form.errors)
+    #     self.assertTrue(form.is_valid())
 
 
 class TestUserSignUpForm(TestCase):
