@@ -1,17 +1,18 @@
+import os
+import shutil
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.urlresolvers import reverse
 from django.forms import model_to_dict
+from django.urls import resolve
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files import File
 from import_export.formats import base_formats
 from contacts.models import Contact, Profile, ContactPhoto, user_directory_path, Dublicate
-from django.urls import resolve
 from contacts.views import new_contact, sign_up, remove_contact, export_contacts, import_contacts, dublicate_list
-from django.core.files.uploadedfile import SimpleUploadedFile
 from contact.settings import BASE_DIR, MEDIA_ROOT
 from datetime import datetime
-import os
-import shutil
 from bs4 import BeautifulSoup
 
 
@@ -398,8 +399,9 @@ class ExportContactViewTest(TestCase):
             firstname = secondname = lastname = 'test' + str(i)
             Contact.objects.create(owner=self.user, firstname=firstname, secondname=secondname, lastname=lastname,
                                    mobile=mobile, star=star)
-        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123', secondname='test123', lastname='test123',
-                              mobile=mobile, star=star)
+        user2_contact = Contact.objects.create(owner=self.user2, firstname='test123',
+                                               secondname='test123', lastname='test123',
+                                               mobile=mobile, star=star)
         _time = datetime.now().strftime('%Y-%m-%d')
         _model = 'Contact'
         file_ext = 'csv'
@@ -569,14 +571,89 @@ class ImportContactViewTest(TestCase):
         file_path = os.path.normpath(file_path)
         with open(file_path, 'rb') as fh:
             input_file = SimpleUploadedFile('Contact-import.xlsx', fh.read())
-            data = {'import': True, 'import_file': input_file,
-                    'input_format': 2}
-            resp = self.client.post(reverse('import_contact'), data)
+        data = {'import': True, 'import_file': input_file, 'input_format': 2}
+        resp = self.client.post(reverse('import_contact'), data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(Contact.objects.count(), 14)
         query_set = Contact.objects.all()[11:]
         for obj in query_set:
             self.assertEqual(obj.owner, user)
+
+    def test_zip_archive_import_successful(self):
+        self.client.login(username='testuser', password='password')
+        pairs = (('Contact-import.csv', 0), ('Contact-import.xls', 1), ('Contact-import.xlsx', 2))
+        for (fpath, format_ind) in pairs:
+            file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/{}'.format(fpath))
+            file_path = os.path.normpath(file_path)
+            arch_file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/test_photo.zip')
+            arch_file_path = os.path.normcase(arch_file_path)
+            with open(file_path, 'rb') as fhandle:
+                input_file = SimpleUploadedFile(fpath, fhandle.read())
+            with open(arch_file_path, 'rb') as arch_handle:
+                photo_file = SimpleUploadedFile('test_photo.zip', arch_handle.read())
+            data = {'import': True, 'import_file': input_file, 'input_format': format_ind,
+                    'photo_file': photo_file, 'archive_format': 0}
+            resp = self.client.post(reverse('import_contact'), data)
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(Contact.objects.count(), 14)
+            self.assertEqual(ContactPhoto.objects.count(), 3)
+            last_3 = Contact.objects.all().order_by('-id')[:3]
+            [item.delete() for item in last_3]
+
+
+    def test_tar_archive_import_successful(self):
+        self.client.login(username='testuser', password='password')
+        pairs = (('Contact-import.csv', 0), ('Contact-import.xls', 1), ('Contact-import.xlsx', 2))
+        for (fpath, format_ind) in pairs:
+            file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/{}'.format(fpath))
+            file_path = os.path.normpath(file_path)
+            arch_file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/test_photo.tar')
+            arch_file_path = os.path.normcase(arch_file_path)
+            with open(file_path, 'rb') as fhandle:
+                input_file = SimpleUploadedFile(fpath, fhandle.read())
+            with open(arch_file_path, 'rb') as arch_handle:
+                photo_file = SimpleUploadedFile('test_photo.tar', arch_handle.read())
+                data = {'import': True, 'import_file': input_file, 'input_format': format_ind,
+                    'photo_file': photo_file, 'archive_format': 1}
+                resp = self.client.post(reverse('import_contact'), data)
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(Contact.objects.count(), 14)
+            self.assertEqual(ContactPhoto.objects.count(), 3)
+            last_3 = Contact.objects.all().order_by('-id')[:3]
+            [item.delete() for item in last_3]
+
+    def test_targz_archive_import_successful(self):
+        self.client.login(username='testuser', password='password')
+        pairs = (('Contact-import.csv', 0), ('Contact-import.xls', 1), ('Contact-import.xlsx', 2))
+        for (fpath, format_ind) in pairs:
+            file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/{}'.format(fpath))
+            file_path = os.path.normpath(file_path)
+            arch_file_path = os.path.join(BASE_DIR, 'contacts/fixtures/import file/test_photo.tar.gz')
+            arch_file_path = os.path.normcase(arch_file_path)
+            with open(file_path, 'rb') as fhandle:
+                input_file = SimpleUploadedFile(fpath, fhandle.read())
+            with open(arch_file_path, 'rb') as arch_handle:
+                photo_file = SimpleUploadedFile('test_photo.tar.gz', arch_handle.read())
+            data = {'import': True, 'import_file': input_file, 'input_format': format_ind,
+                    'photo_file': photo_file, 'archive_format': 2}
+            resp = self.client.post(reverse('import_contact'), data)
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(Contact.objects.count(), 14)
+            self.assertEqual(ContactPhoto.objects.count(), 3)
+            last_3 = Contact.objects.all().order_by('-id')[:3]
+            [item.delete() for item in last_3]
+
+    def test_wrong_archive_import_fail(self):
+        pass
+
+    def test_download_csv_template_successful(self):
+        pass
+
+    def test_download_xls_template_successful(self):
+        pass
+
+    def test_download_xlsx_template_successful(self):
+        pass
 
 
 class DublicateListViewTest(TestCase):
@@ -651,7 +728,7 @@ class DublicateListViewTest(TestCase):
                                           lastname='test4', mobile='+380(97)3500139')
         self.client.get(self.url)
         ids = ids[:2]
-        data ={'contact_id': ids}
+        data = {'contact_id': ids}
         resp = self.client.post(reverse('merge_dublicates'), data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(Contact.objects.count(), 3)

@@ -1,0 +1,2 @@
+contacts/test/test_views.py:10: [E] PYFLAKES:'django.core.files.File' imported but unused
+api/models.py:1: [E] PYFLAKES:'django.db.models' imported but unused

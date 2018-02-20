@@ -6,13 +6,13 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.urlresolvers import reverse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from .admin import ContactResource
-from .forms import ContactForm, ContactPhotoForm, UserSignUpForm, TemplateFormatForm, ImportFileFolderForm
-from .models import Contact, ContactPhoto, Dublicate
 from contact.settings import DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT, ARCHIVE_FORMAT_FOR_IMPORT
 from import_export.forms import ExportForm
 from datetime import datetime
 from io import TextIOWrapper
+from .admin import ContactResource
+from .forms import ContactForm, ContactPhotoForm, UserSignUpForm, TemplateFormatForm, ImportFileFolderForm
+from .models import Contact, ContactPhoto, Dublicate
 
 # Create your views here.
 
@@ -220,10 +220,8 @@ def remove_contact(request, pk):
 
 @login_required
 def bulk_delete(request):
-    print(request.method)
     if request.method == 'POST':
         contact_ids = request.POST.getlist('contact_id')
-        print(contact_ids)
         query = Contact.objects.filter(id__in=contact_ids)
         for item in query:
             item.delete()
@@ -247,7 +245,6 @@ def export_contacts(request):
             _model = ContactResource.Meta.model.__name__
             filename = '%s-%s.%s' % (_model, _time, file_extension)
             response = HttpResponse(export_data, content_type=content_type)
-            # response.write(codecs.BOM_UTF8)
             response['Content-Disposition'] = 'attachment; filename = %s' % filename
             return response
     else:

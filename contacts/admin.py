@@ -1,14 +1,14 @@
+import re
+import os
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .models import Contact, ContactPhoto, Dublicate
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget
 from import_export.admin import ImportExportModelAdmin
 from django.forms import ValidationError
 from django.core.files.storage import default_storage
-import re
-import os
+from .models import Contact, ContactPhoto, Dublicate
 
 
 def path_to_archieve(base_dir):
@@ -26,7 +26,7 @@ class ContactResource(resources.ModelResource):
         attribute='owner',
         widget=ForeignKeyWidget(User)
     )
-    
+
     class Meta:
         model = Contact
         exclude = ('owner',)
@@ -38,7 +38,8 @@ class ContactResource(resources.ModelResource):
             print('Error in phone number')
             raise ValidationError("Phone number must be entered in the format: "
                                   "'+380(67)9999999'. Up to 15 digits allowed. "
-                                  "Error in row with id = %s" % row['id'], code='invalid_mobile'
+                                  "Error in row with id = %s" % row['id'],
+                                  code='invalid_mobile'
                                   )
         return False
 
@@ -84,4 +85,3 @@ class ContactPhotoResource(resources.ModelResource):
 admin.site.register(Contact, ContactAdmin)
 admin.site.register(ContactPhoto)
 admin.site.register(Dublicate)
-
