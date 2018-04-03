@@ -158,18 +158,22 @@ USE_TZ = True
 
 
 # static files (CSS, JavaScript, Images)
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "static"),
+# ]
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# GS_BUCKET_NAME = '186811' # the name of the bucket you have created from the google cloud storage console
+# GS_PROJECT_ID = 'proven-center-186811'
 
 # DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 # STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # STATICFILES_DIRS = [#     os.path.join(BASE_DIR, "static"),
 #     ]
-
+# STATIC_URL = 'https://storage.googleapis.com/186811/static/'
+# MEDIA_URL = 'https://storage.googleapis.com/186811/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
