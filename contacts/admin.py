@@ -74,7 +74,8 @@ class ContactAdmin(ImportExportModelAdmin):
 class ContactPhotoResource(resources.ModelResource):
     class Meta:
         model = ContactPhoto
-        fields = ('contact', 'photo')
+        # fields = ('contact', 'thumbnail')
+        fields = ('thumbnail')
 
 # Register your models here.
 

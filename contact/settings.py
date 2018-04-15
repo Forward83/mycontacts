@@ -12,14 +12,13 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import dj_database_url
+import zipfile, tarfile
 from django.conf.global_settings import MEDIA_ROOT, MEDIA_URL
 from import_export.formats import base_formats
 from decouple import config, Csv
-import zipfile, tarfile
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -48,7 +47,14 @@ INSTALLED_APPS = [
     'storages',
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_PASSWORD = config('EMAIL_PASS')
+EMAIL_HOST_USER = 'sergii.iukhymchuk83@gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 REST_FRAMEWORK = {
     
@@ -182,8 +188,7 @@ MEDIA_URL = '/media/'
 THUMB_SIZE = (125, 125)
 #Maximum allowed photo size
 PHOTO_SIZE = 2*1024*1024
-#Default formats for import-export actions
+
 DEFAULT_FORMATS_FOR_EXPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX, base_formats.HTML)
 DEFAULT_FORMATS_FOR_IMPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX)
-ARCHIVE_FORMAT_FOR_IMPORT = (('zip',), ('tar',), ('tar.gz',),)
 MAX_SIZE_PHOTO_ARCHIVE = 7340032

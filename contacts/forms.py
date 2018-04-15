@@ -8,15 +8,14 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from import_export.forms import ExportForm, ImportForm
-from shutil import get_archive_formats
-from io import BytesIO
-from contact.settings import ARCHIVE_FORMAT_FOR_IMPORT
 from contact.settings import MAX_SIZE_PHOTO_ARCHIVE
+
 
 def photo_file_size(value): # validator for archive photo field
     limit = MAX_SIZE_PHOTO_ARCHIVE
     if value.size > limit:
         raise ValidationError('File too large. Size should not exceed {} B.'.format(MAX_SIZE_PHOTO_ARCHIVE))
+
 
 class ImportFileFolderForm(ImportForm):
     photo_file = forms.FileField(label=_('Select archive file with photos'), required=False, validators=[photo_file_size])
@@ -30,9 +29,10 @@ class ImportFileFolderForm(ImportForm):
         ImportForm.__init__(self, import_formats, *args, **kwargs)
         archive_choices = []
         for i, f in enumerate(archive_formats):
-            archive_choices.append((str(i), f[0]),)
+            archive_choices.append((str(i), f().get_title(),))
         if len(archive_choices) > 1:
             archive_choices.insert(0, ('', '---'))
+
         self.fields['archive_format'].choices = archive_choices
 
 
@@ -60,6 +60,15 @@ class UserSignUpForm(UserCreationForm):
                    'first_name': TextInput(attrs={'class': 'field-long'}),
                    'last_name': TextInput(attrs={'class': 'field-long'}),
                    'email': TextInput(attrs={'class': 'field-long'})}
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        print(email)
+        print(User.objects.filter(email=email))
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('User with such email already exists')
+        return email
+
 
 class ContactForm(forms.ModelForm):
     class Meta:

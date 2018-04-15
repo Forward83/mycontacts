@@ -7,7 +7,7 @@
         <div class="col-md-10">
           <div row>
               <div id="content" class="colM">
-                    <h1>Export</h1>
+                    <h1>Export contacts</h1>
                     <form action="" method="POST">
                         {% csrf_token %}
                             <fieldset class="module aligned">
@@ -22,7 +22,25 @@
                             {% endfor %}
                             </fieldset>
                         <div class="submit-row">
-                             <input type="submit" class="default" value="Submit">
+                             <input type="submit" class="default" name="export_contacts" value="Submit">
+                        </div>
+                    </form>
+                <h1>Export photos</h1>
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                            <fieldset class="module aligned">
+                            {%  for field in photo_form %}
+                            <div class="form-row">
+                            <label>
+                            {{ field.label }}
+                            </label>
+                            {{ field.errors }}
+                            {{ field }}
+                            </div>
+                            {% endfor %}
+                            </fieldset>
+                        <div class="submit-row">
+                             <input type="submit" class="default" name="export_photos" value="Submit">
                         </div>
                     </form>
               </div>
