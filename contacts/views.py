@@ -1,5 +1,6 @@
 import os
 import zipfile, tarfile
+import copy
 from io import BytesIO
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
@@ -30,94 +31,106 @@ class ZIP(ArchiveClass):
     def __init__(self):
         self.title = 'zip'
 
-    @staticmethod
-    def extract_archive(input_archive, mode, base_dir):
+    def __call__(self):  # Make objects callable for correctly build ExportForm
+        return self
+
+    def extract_archive(self, input_archive, base_dir):
         import zipfile
-        input_file = zipfile.ZipFile(input_archive, mode)
+        input_file = zipfile.ZipFile(input_archive)
         for name in input_file.namelist()[1:]:
             file_path = os.path.join(base_dir, os.path.basename(name))
             file_obj = input_file.read(name)
             default_storage.save(file_path, ContentFile(file_obj))
 
-    @staticmethod
-    def add_to_archive(filenames, mode='w'):
+    def add_to_archive(self, filenames):
         zip_subdir = "photo"
         zip_filename = "%s.zip" % zip_subdir
         b = BytesIO()
-
         # The zip compressor
-        zf = zipfile.ZipFile(b, mode)
+        zf = zipfile.ZipFile(b, mode='w')
 
         for fpath in filenames:
             # Calculate path for file in zip
             fdir, fname = os.path.split(fpath)
             fname = '{}.png'.format(fname.split('_')[0])
             zip_path = os.path.join(zip_subdir, fname)
-
-            # Add file, at correct path
             zf.write(fpath, zip_path)
 
         # Must close zip for all contents to be written
         zf.close()
         return b, zip_filename
 
+
 class TAR(ArchiveClass):
 
-    def __init__(self):
-        self.title = 'tar'
+    def __init__(self, title='tar', **kwargs):
+        self.title = title
+        self.__dict__.update(kwargs)
 
-    @staticmethod
-    def extract_archive(input_archive, mode, base_dir):
+    def __call__(self):
+        return self
+
+    def extract_archive(self, input_archive, base_dir):
         import tarfile
+        mode = self.__dict__['read_mode']
         input_file = tarfile.open(fileobj=input_archive, mode=mode)
         for name in input_file.getmembers()[1:]:
             file_path = os.path.join(base_dir, os.path.basename(name.name))
             file_obj = input_file.extractfile(name)
             default_storage.save(file_path, ContentFile(file_obj.read()))
 
-    @staticmethod
-    def add_to_archive(filenames, mode='w'):
+    def add_to_archive(self, filenames):
+        mode = self.__dict__['write_mode']
+        file_ext = self.__dict__['file_ext']
         tar_subdir = "photo"
-        tar_filename = "%s.tar" % tar_subdir
+        tar_filename = "%s.%s" % (tar_subdir, file_ext)
 
         b = BytesIO()
         tf = tarfile.open(mode=mode, fileobj=b)
         for fpath in filenames:
             fdir, fname = os.path.split(fpath)
             fname = '{}.png'.format(fname.split('_')[0])
-            # Add file, at correct path
             tf.add(fpath, fname)
-
-        # Must close zip for all contents to be written
         tf.close()
-
         return b, tar_filename
 
-class TARGZ(TAR):
+
+class TarPrototype(ArchiveClass):
 
     def __init__(self):
-        TAR.__init__(self)
-        self.title = 'tar.gz'
+        self.obj = dict()
 
-    @staticmethod
-    def add_to_archive(filenames, mode='w:gz'):
-        tar_subdir = "photo"
-        tar_filename = "%s.tar.gz" % tar_subdir
+    def register(self, identifier, obj):
+        self.obj[identifier] = obj
 
-        b = BytesIO()
-        tf = tarfile.open(mode=mode, fileobj=b)
-        for fpath in filenames:
-            fdir, fname = os.path.split(fpath)
-            fname = '{}.png'.format(fname.split('_')[0])
-            # Add file, at correct path
-            tf.add(fpath, fname)
+    def unregister(self, identifier):
+        del self.obj[identifier]
 
-        # Must close zip for all contents to be written
-        tf.close()
-        return b, tar_filename
+    def clone(self, identifier, **attr):
+        found = self.obj.get(identifier)
+        if not found:
+            raise ValueError('Incorrect object identifier {}'.format(identifier))
+        obj = copy.deepcopy(found)
+        obj.__dict__.update(attr)
+        return obj
 
 
-ARCHIVE_FORMAT = (ZIP, TAR, TARGZ)
+def create_zip_tar_prototypes():
+    zip_obj = ZIP()
+    tar_profile = {'read_mode': 'r', 'write_mode': 'w', 'file_ext': 'tar'}
+    tar_gz_profile = {'read_mode': 'r:gz', 'write_mode': 'w:gz', 'file_ext': 'tar.gz'}
+    tar_obj = TAR(**tar_profile)
+    p = TarPrototype()
+    p.register('zip', zip_obj)
+    p.register('tar', tar_obj)
+    tar_gz_obj = p.clone('tar', title='tar.gz', **tar_gz_profile)
+    p.register('tar.gz', tar_gz_obj)
+    return p
+
+
+p = create_zip_tar_prototypes()
+ARCHIVE_FORMAT = [p.obj[key] for key in p.obj]
+
 
 def find_dublicates(request, create=False):
     if create:
@@ -139,30 +152,6 @@ def find_dublicates(request, create=False):
                 Dublicate.objects.bulk_create(dublicates)
         index += count
     return total_count
-
-
-def archivator_fabric(archive_format, operation):
-    """
-    Fabric method to use appropriate archivator class
-    """
-    title = archive_format().title
-    if operation == 'read':
-        mode = 'r'
-    elif operation == 'write':
-        mode = 'w'
-    else:
-        raise ValueError('Not implemented archive operation type')
-    if title == 'zip':
-        archivator = ZIP
-    elif title.startswith('tar'):
-        if title == 'tar':
-            archivator = TAR
-        else:
-            mode = mode + ':' + title.split('.')[1]
-            archivator = TARGZ
-    else:
-        raise ValueError('Not implemented archivator')
-    return (archivator, mode)
 
 
 def check_owner(view_func, redirect_url_name='login'):
@@ -358,7 +347,6 @@ def export_contacts(request):
                 # Get archivator type from choice field
                 choice_num = export_photo_form.cleaned_data.get('file_format')
                 archivator = archive_formats[int(choice_num)]
-                print(archivator)
                 export_photo_form = ExportForm(archive_formats, request.POST)
                 export_photo_form.fields['file_format'].label = "Archive format"
                 query_set = ContactPhoto.objects.filter(contact__owner=request.user)
@@ -412,9 +400,8 @@ def import_contacts(request):
                 if request.FILES.get('photo_file', False):
                     archive_file = request.FILES['photo_file']
                     choice_num = form.cleaned_data.get('archive_format')
-                    archive_format = archive_formats[int(choice_num)]
-                    archivator, mode = archivator_fabric(archive_format, 'read')
-                    archivator.extract_archive(archive_file, mode, base_dir)
+                    archivator = archive_formats[int(choice_num)]
+                    archivator.extract_archive(archive_file, base_dir)
 
                 result = contact_resource.import_data(imported_data, dry_run=False, collect_failed_rows=True,
                                                       use_transactions=False)
@@ -449,43 +436,3 @@ def import_contacts(request):
         form = ImportFileFolderForm(formats, archive_formats)
         template_form = TemplateFormatForm(formats)
     return render(request, 'contacts/import_form.html', {'form': form, 'template_form': template_form})
-
-def get_photos(request):
-    # Files (local path) to put in the .zip
-    query_set = ContactPhoto.objects.filter(contact__owner=request.user)
-    photo_list = ContactPhotoResource().export(queryset=query_set)
-    line = str(photo_list.csv)
-    line = '/n'.join(row for row in line.splitlines()[1:])
-    print(line)
-
-    # relative to MEDIA_ROOT filepathes
-    filenames_rel = [row for row in line.split('/n') if row]
-    print(filenames_rel)
-    # list of absolute pathes
-    filenames = [os.path.join(MEDIA_ROOT, fpath) for fpath in filenames_rel]
-    zip_subdir = "photo"
-    zip_filename = "%s.zip" % zip_subdir
-
-    # Open ByteIO to grab in-memory ZIP contents
-    b = BytesIO()
-
-    # The zip compressor
-    zf = zipfile.ZipFile(b, "w")
-
-    for fpath in filenames:
-        # Calculate path for file in zip
-        fdir, fname = os.path.split(fpath)
-        zip_path = os.path.join(zip_subdir, fname)
-
-        # Add file, at correct path
-        zf.write(fpath, zip_path)
-
-    # Must close zip for all contents to be written
-    zf.close()
-
-    # Grab ZIP file from in-memory, make response with correct MIME-type
-    resp = HttpResponse(b.getvalue(), content_type="application/x-zip-compressed")
-    # ..and correct content-disposition
-    resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
-    resp['Content-length'] = b.tell()
-    return resp
