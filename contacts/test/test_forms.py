@@ -2,7 +2,9 @@ import os
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from contacts.forms import ContactForm, ContactPhotoForm, UserSignUpForm, ImportFileFolderForm
-from contact.settings import BASE_DIR, DEFAULT_FORMATS_FOR_IMPORT, ARCHIVE_FORMAT_FOR_IMPORT
+from contact.settings import BASE_DIR, DEFAULT_FORMATS_FOR_IMPORT
+from contacts.views import ARCHIVE_FORMAT
+
 
 
 class TestContactForm(TestCase):
@@ -68,7 +70,7 @@ class TestImportFileFolderForm(TestCase):
 
     def test_form_has_fields(self):
         form = ImportFileFolderForm(DEFAULT_FORMATS_FOR_IMPORT,
-                                    ARCHIVE_FORMAT_FOR_IMPORT)
+                                    ARCHIVE_FORMAT)
         expected = ['import_file', 'input_format', 'photo_file', 'archive_format']
         result = list(form.fields)
         self.assertEqual(expected, result)

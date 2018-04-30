@@ -1,18 +1,35 @@
 ************* Module mycontacts.contacts.views
-contacts/views.py:96: [C0303(trailing-whitespace), ] Trailing whitespace
-contacts/views.py:157: [C0303(trailing-whitespace), ] Trailing whitespace
-contacts/views.py:300: [C0330(bad-continuation), ] Wrong continued indentation (add 39 spaces).
+contacts/views.py:213: [C0303(trailing-whitespace), ] Trailing whitespace
+contacts/views.py:273: [C0303(trailing-whitespace), ] Trailing whitespace
+contacts/views.py:451: [C0330(bad-continuation), ] Wrong continued indentation (add 39 spaces).
                               'statistics': (total_qty, success_qty, error_qty)})
                               ^                                      |
-contacts/views.py:85: [R1705(no-else-return), check_owner.wrapper] Unnecessary "else" after "return"
-contacts/views.py:164: [W0612(unused-variable), edit_contact] Unused variable 'created'
-contacts/views.py:242: [W0621(redefined-outer-name), export_contacts] Redefining name 'contact_list' from outer scope (line 118)
-contacts/views.py:256: [R0914(too-many-locals), import_contacts] Too many local variables (29/15)
-contacts/views.py:256: [R0912(too-many-branches), import_contacts] Too many branches (13/12)
-contacts/views.py:256: [R0915(too-many-statements), import_contacts] Too many statements (53/50)
-contacts/views.py:10: [C0411(wrong-import-order), ] third party import "from import_export.forms import ExportForm" should be placed before "from contact.settings import DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT, ARCHIVE_FORMAT_FOR_IMPORT"
-contacts/views.py:11: [C0411(wrong-import-order), ] standard import "from datetime import datetime" should be placed before "from django.contrib.auth.decorators import login_required"
-contacts/views.py:12: [C0411(wrong-import-order), ] standard import "from io import TextIOWrapper" should be placed before "from django.contrib.auth.decorators import login_required"
+contacts/views.py:4: [C0410(multiple-imports), ] Multiple imports on one line (zipfile, tarfile)
+contacts/views.py:29: [E1101(no-member), ArchiveClass.get_title] Instance of 'ArchiveClass' has no 'title' member
+contacts/views.py:41: [W0621(redefined-outer-name), ZIP.extract_archive] Redefining name 'zipfile' from outer scope (line 4)
+contacts/views.py:41: [W0404(reimported), ZIP.extract_archive] Reimport 'zipfile' (imported line 4)
+contacts/views.py:57: [W0612(unused-variable), ZIP.add_to_archive] Unused variable 'fdir'
+contacts/views.py:77: [W0621(redefined-outer-name), TAR.extract_archive] Redefining name 'tarfile' from outer scope (line 4)
+contacts/views.py:77: [W0404(reimported), TAR.extract_archive] Reimport 'tarfile' (imported line 4)
+contacts/views.py:94: [W0612(unused-variable), TAR.add_to_archive] Unused variable 'fdir'
+contacts/views.py:126: [W0621(redefined-outer-name), create_zip_tar_prototypes] Redefining name 'p' from outer scope (line 134)
+contacts/views.py:180: [W0621(redefined-outer-name), extract_archive] Redefining name 'tarfile' from outer scope (line 4)
+contacts/views.py:173: [W0621(redefined-outer-name), extract_archive] Redefining name 'zipfile' from outer scope (line 4)
+contacts/views.py:173: [W0404(reimported), extract_archive] Reimport 'zipfile' (imported line 4)
+contacts/views.py:180: [W0404(reimported), extract_archive] Reimport 'tarfile' (imported line 4)
+contacts/views.py:202: [R1705(no-else-return), check_owner.wrapper] Unnecessary "else" after "return"
+contacts/views.py:280: [W0612(unused-variable), edit_contact] Unused variable 'created'
+contacts/views.py:361: [W0621(redefined-outer-name), export_contacts] Redefining name 'contact_list' from outer scope (line 235)
+contacts/views.py:348: [R0914(too-many-locals), export_contacts] Too many local variables (25/15)
+contacts/views.py:405: [R0914(too-many-locals), import_contacts] Too many local variables (29/15)
+contacts/views.py:1: [W0611(unused-import), ] Unused import codecs
+contacts/views.py:2: [W0611(unused-import), ] Unused import csv
+contacts/views.py:17: [C0411(wrong-import-order), ] first party import "from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT" should be placed before "from .admin import ContactResource, ContactPhotoResource"
+contacts/views.py:18: [C0411(wrong-import-order), ] third party import "from import_export.forms import ExportForm" should be placed before "from contact.settings import MEDIA_ROOT, DEFAULT_FORMATS_FOR_EXPORT, DEFAULT_FORMATS_FOR_IMPORT"
+contacts/views.py:19: [C0411(wrong-import-order), ] standard import "from datetime import datetime" should be placed before "from django.contrib.auth.decorators import login_required"
+contacts/views.py:20: [C0411(wrong-import-order), ] standard import "from io import TextIOWrapper" should be placed before "from django.contrib.auth.decorators import login_required"
+contacts/views.py:21: [C0411(wrong-import-order), ] standard import "from collections import OrderedDict" should be placed before "from django.contrib.auth.decorators import login_required"
+contacts/views.py:20: [C0412(ungrouped-imports), ] Imports from package io are not grouped
 ************* Module mycontacts.contacts.urls
 contacts/urls.py:42: [C0303(trailing-whitespace), ] Trailing whitespace
 contacts/urls.py:21: [C0411(wrong-import-order), ] third party import "from django.contrib.auth import views as auth_views" should be placed before "from . import views"
@@ -25,41 +42,42 @@ contacts/admin.py:15: [W0612(unused-variable), path_to_archieve] Unused variable
 contacts/admin.py:15: [W0612(unused-variable), path_to_archieve] Unused variable 'filenames'
 contacts/admin.py:9: [C0412(ungrouped-imports), ] Imports from package django are not grouped
 ************* Module mycontacts.contacts.forms
-contacts/forms.py:72: [C0330(bad-continuation), ] Wrong continued indentation (remove 1 space).
+contacts/forms.py:78: [C0330(bad-continuation), ] Wrong continued indentation (remove 1 space).
                   }
                  |^
-contacts/forms.py:74: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
+contacts/forms.py:80: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
                   'secondname': TextInput(attrs={'placeholder': 'Second', 'class': 'field-divided'}),
                   ^|
-contacts/forms.py:75: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
+contacts/forms.py:81: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
                   'lastname': TextInput(attrs={'placeholder': 'Last', 'class': 'field-divided'}),
                   ^|
-contacts/forms.py:76: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
+contacts/forms.py:82: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
                   'personal_phone': TextInput(attrs={'class': 'field-long'}),
                   ^|
-contacts/forms.py:77: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
+contacts/forms.py:83: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
                   'position': TextInput(attrs={'class': 'field-long field-textarea'}),
                   ^|
-contacts/forms.py:78: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
+contacts/forms.py:84: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
                   'address': TextInput(attrs={'class': 'field-long field-textarea'}),
                   ^|
-contacts/forms.py:79: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
+contacts/forms.py:85: [C0330(bad-continuation), ] Wrong continued indentation (add 1 space).
                   'email': TextInput(attrs={'class': 'field-long'}),
                   ^|
-contacts/forms.py:80: [C0330(bad-continuation), ] Wrong continued indentation (remove 1 space).
-                   }
-                  |^
-contacts/forms.py:82: [C0330(bad-continuation), ] Wrong hanging indentation (remove 8 spaces).
+contacts/forms.py:88: [C0330(bad-continuation), ] Wrong hanging indentation (remove 8 spaces).
                     'mobile': 'Format: +380(67)XXXXXXX'
             |       ^
-contacts/forms.py:5: [C0411(wrong-import-order), ] first party import "from contact.settings import PHOTO_SIZE" should be placed before "from .models import Contact, ContactPhoto"
-contacts/forms.py:6: [C0411(wrong-import-order), ] third party import "from django.core.exceptions import ValidationError" should be placed before "from contact.settings import PHOTO_SIZE"
-contacts/forms.py:7: [C0411(wrong-import-order), ] third party import "from django.contrib.auth.forms import UserCreationForm" should be placed before "from contact.settings import PHOTO_SIZE"
-contacts/forms.py:8: [C0411(wrong-import-order), ] third party import "from django.contrib.auth.models import User" should be placed before "from contact.settings import PHOTO_SIZE"
-contacts/forms.py:9: [C0411(wrong-import-order), ] third party import "from import_export.forms import ExportForm, ImportForm" should be placed before "from contact.settings import PHOTO_SIZE"
-contacts/forms.py:10: [C0411(wrong-import-order), ] first party import "from contact.settings import MAX_SIZE_PHOTO_ARCHIVE" should be placed before "from .models import Contact, ContactPhoto"
-contacts/forms.py:6: [C0412(ungrouped-imports), ] Imports from package django are not grouped
-contacts/forms.py:10: [C0412(ungrouped-imports), ] Imports from package contact are not grouped
+contacts/forms.py:110: [C0304(missing-final-newline), ] Final newline missing
+contacts/forms.py:1: [W0611(unused-import), ] Unused Form imported from django.forms
+contacts/forms.py:1: [W0611(unused-import), ] Unused inlineformset_factory imported from django.forms
+contacts/forms.py:1: [W0611(unused-import), ] Unused BaseInlineFormSet imported from django.forms
+contacts/forms.py:6: [C0411(wrong-import-order), ] first party import "from contact.settings import PHOTO_SIZE" should be placed before "from .models import Contact, ContactPhoto"
+contacts/forms.py:7: [C0411(wrong-import-order), ] third party import "from django.core.exceptions import ValidationError" should be placed before "from contact.settings import PHOTO_SIZE"
+contacts/forms.py:8: [C0411(wrong-import-order), ] third party import "from django.contrib.auth.forms import UserCreationForm" should be placed before "from contact.settings import PHOTO_SIZE"
+contacts/forms.py:9: [C0411(wrong-import-order), ] third party import "from django.contrib.auth.models import User" should be placed before "from contact.settings import PHOTO_SIZE"
+contacts/forms.py:10: [C0411(wrong-import-order), ] third party import "from import_export.forms import ExportForm, ImportForm" should be placed before "from contact.settings import PHOTO_SIZE"
+contacts/forms.py:11: [C0411(wrong-import-order), ] first party import "from contact.settings import MAX_SIZE_PHOTO_ARCHIVE" should be placed before "from .models import Contact, ContactPhoto"
+contacts/forms.py:7: [C0412(ungrouped-imports), ] Imports from package django are not grouped
+contacts/forms.py:11: [C0412(ungrouped-imports), ] Imports from package contact are not grouped
 ************* Module mycontacts.contacts.models
 contacts/models.py:22: [C0303(trailing-whitespace), ] Trailing whitespace
 contacts/models.py:29: [C0303(trailing-whitespace), ] Trailing whitespace
@@ -76,10 +94,8 @@ contacts/models.py:126: [E1101(no-member), ContactPhoto.create_thumbnail] Instan
 contacts/models.py:130: [E1101(no-member), ContactPhoto.create_thumbnail] Instance of 'ImageField' has no 'save' member
 contacts/models.py:136: [W0221(arguments-differ), ContactPhoto.save] Parameters differ from overridden 'save' method
 ************* Module mycontacts.contacts.test.test_forms
-contacts/test/test_forms.py:78: [C0305(trailing-newlines), ] Trailing newlines
-contacts/test/test_forms.py:4: [C0411(wrong-import-order), ] third party import "from django.core.files.uploadedfile import SimpleUploadedFile" should be placed before "from contacts.forms import ContactForm, ContactPhotoForm, UserSignUpForm"
-contacts/test/test_forms.py:5: [C0411(wrong-import-order), ] standard import "import os" should be placed before "from django.test import TestCase"
-contacts/test/test_forms.py:4: [C0412(ungrouped-imports), ] Imports from package django are not grouped
+contacts/test/test_forms.py:102: [C0305(trailing-newlines), ] Trailing newlines
+contacts/test/test_forms.py:6: [C0412(ungrouped-imports), ] Imports from package contacts are not grouped
 ************* Module mycontacts.contacts.test.test_models
 contacts/test/test_models.py:25: [C0330(bad-continuation), ] Wrong continued indentation (remove 10 spaces).
                                mobile=wrong_mobile)
@@ -100,43 +116,42 @@ contacts/test/test_models.py:6: [C0411(wrong-import-order), ] standard import "i
 contacts/test/test_models.py:7: [C0411(wrong-import-order), ] standard import "import os" should be placed before "from django.test import TestCase"
 contacts/test/test_models.py:3: [C0412(ungrouped-imports), ] Imports from package django are not grouped
 ************* Module mycontacts.contacts.test.test_views
-contacts/test/test_views.py:40: [C0330(bad-continuation), ] Wrong continued indentation (add 14 spaces).
+contacts/test/test_views.py:39: [C0330(bad-continuation), ] Wrong continued indentation (add 14 spaces).
                      mobile=mobile, star=star)
                      ^             |
-contacts/test/test_views.py:65: [C0326(bad-whitespace), ] Exactly one space required around assignment
+contacts/test/test_views.py:64: [C0326(bad-whitespace), ] Exactly one space required around assignment
         contact_lastname=''
                         ^
-contacts/test/test_views.py:112: [C0330(bad-continuation), ] Wrong continued indentation (remove 1 space).
+contacts/test/test_views.py:111: [C0330(bad-continuation), ] Wrong continued indentation (remove 1 space).
                 }
                |^
-contacts/test/test_views.py:256: [C0330(bad-continuation), ] Wrong continued indentation (add 15 spaces).
+contacts/test/test_views.py:255: [C0330(bad-continuation), ] Wrong continued indentation (add 15 spaces).
                 mobile='+380(67)2162478')
                 ^              |
-contacts/test/test_views.py:263: [C0330(bad-continuation), ] Wrong continued indentation (remove 1 space).
+contacts/test/test_views.py:262: [C0330(bad-continuation), ] Wrong continued indentation (remove 1 space).
                                                     (reverse('edit_contact', kwargs={'pk': contact.id}))))
                                                    |^
-contacts/test/test_views.py:427: [C0330(bad-continuation), ] Wrong continued indentation (add 17 spaces).
+contacts/test/test_views.py:426: [C0330(bad-continuation), ] Wrong continued indentation (add 17 spaces).
                               mobile=mobile, star=star)
                               ^                |
-contacts/test/test_views.py:530: [C0303(trailing-whitespace), ] Trailing whitespace
-contacts/test/test_views.py:559: [C0330(bad-continuation), ] Wrong continued indentation (add 4 spaces).
+contacts/test/test_views.py:529: [C0303(trailing-whitespace), ] Trailing whitespace
+contacts/test/test_views.py:558: [C0330(bad-continuation), ] Wrong continued indentation (add 4 spaces).
                 'input_format': 1}
                 ^   |
-contacts/test/test_views.py:617: [C0330(bad-continuation), ] Wrong continued indentation (add 4 spaces).
+contacts/test/test_views.py:616: [C0330(bad-continuation), ] Wrong continued indentation (add 4 spaces).
                     'photo_file': photo_file, 'archive_format': 1}
                     ^   |
-contacts/test/test_views.py:1: [C0302(too-many-lines), ] Too many lines in module (737/500)
-contacts/test/test_views.py:55: [W0612(unused-variable), ContactListViewTest.test_logged_in_user_see_his_her_contact_list] Unused variable 'thumb'
-contacts/test/test_views.py:63: [W0612(unused-variable), ContactListViewTest.test_correct_ordering] Unused variable 'thumb'
-contacts/test/test_views.py:392: [R0914(too-many-locals), ExportContactViewTest.test_csv_export_successful] Too many local variables (18/15)
-contacts/test/test_views.py:417: [R0914(too-many-locals), ExportContactViewTest.test_xls_export_successful] Too many local variables (18/15)
-contacts/test/test_views.py:463: [R0914(too-many-locals), ExportContactViewTest.test_html_export_successful] Too many local variables (21/15)
-contacts/test/test_views.py:601: [W0106(expression-not-assigned), ImportContactViewTest.test_zip_archive_import_successful] Expression "[item.delete() for item in last_3]" is assigned to nothing
-contacts/test/test_views.py:623: [W0106(expression-not-assigned), ImportContactViewTest.test_tar_archive_import_successful] Expression "[item.delete() for item in last_3]" is assigned to nothing
-contacts/test/test_views.py:644: [W0106(expression-not-assigned), ImportContactViewTest.test_targz_archive_import_successful] Expression "[item.delete() for item in last_3]" is assigned to nothing
-contacts/test/test_views.py:10: [W0611(unused-import), ] Unused File imported from django.core.files
-contacts/test/test_views.py:15: [C0411(wrong-import-order), ] standard import "from datetime import datetime" should be placed before "from django.test import TestCase"
-contacts/test/test_views.py:16: [C0411(wrong-import-order), ] third party import "from bs4 import BeautifulSoup" should be placed before "from contacts.models import Contact, Profile, ContactPhoto, user_directory_path, Dublicate"
+contacts/test/test_views.py:1: [C0302(too-many-lines), ] Too many lines in module (736/500)
+contacts/test/test_views.py:54: [W0612(unused-variable), ContactListViewTest.test_logged_in_user_see_his_her_contact_list] Unused variable 'thumb'
+contacts/test/test_views.py:62: [W0612(unused-variable), ContactListViewTest.test_correct_ordering] Unused variable 'thumb'
+contacts/test/test_views.py:391: [R0914(too-many-locals), ExportContactViewTest.test_csv_export_successful] Too many local variables (18/15)
+contacts/test/test_views.py:416: [R0914(too-many-locals), ExportContactViewTest.test_xls_export_successful] Too many local variables (18/15)
+contacts/test/test_views.py:462: [R0914(too-many-locals), ExportContactViewTest.test_html_export_successful] Too many local variables (21/15)
+contacts/test/test_views.py:600: [W0106(expression-not-assigned), ImportContactViewTest.test_zip_archive_import_successful] Expression "[item.delete() for item in last_3]" is assigned to nothing
+contacts/test/test_views.py:622: [W0106(expression-not-assigned), ImportContactViewTest.test_tar_archive_import_successful] Expression "[item.delete() for item in last_3]" is assigned to nothing
+contacts/test/test_views.py:643: [W0106(expression-not-assigned), ImportContactViewTest.test_targz_archive_import_successful] Expression "[item.delete() for item in last_3]" is assigned to nothing
+contacts/test/test_views.py:14: [C0411(wrong-import-order), ] standard import "from datetime import datetime" should be placed before "from django.test import TestCase"
+contacts/test/test_views.py:15: [C0411(wrong-import-order), ] third party import "from bs4 import BeautifulSoup" should be placed before "from contacts.models import Contact, Profile, ContactPhoto, user_directory_path, Dublicate"
 ************* Module mycontacts.contacts.migrations.0001_initial
 contacts/migrations/0001_initial.py:28: [C0301(line-too-long), ] Line too long (274/160)
 contacts/migrations/0001_initial.py:6: [C0411(wrong-import-order), ] third party import "from django.conf import settings" should be placed before "import contacts.models"
@@ -152,5 +167,5 @@ api/models.py:1: [W0611(unused-import), ] Unused models imported from django.db
 api/test/test.py:105: [C0305(trailing-newlines), ] Trailing newlines
 
 ------------------------------------------------------------------
-Your code has been rated at 9.00/10 (previous run: 8.81/10, +0.19)
+Your code has been rated at 8.94/10 (previous run: 9.00/10, -0.05)
 

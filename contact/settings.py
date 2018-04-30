@@ -39,7 +39,6 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 INSTALLED_APPS = [
     'contacts',
     'api',
-    'django_nose',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -66,7 +65,14 @@ JENKINS_TASKS = ('django_jenkins.tasks.run_pylint',
 #     '--cover-package=contacts',
 # ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_PASSWORD = config('EMAIL_PASS')
+EMAIL_HOST_USER = 'sergii.iukhymchuk83@gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
@@ -110,8 +116,38 @@ DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL')
     )
+    #    'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'contacts',
+    #     'USER': 'mycontact',
+    #     'PASSWORD': 'P@ssw0rd123',
+    #     'HOST': '35.198.128.5',   # Or an IP Address that your DB is hosted on
+    #     'PORT': '3306',
+    # }
 }
 
+DATABASES['default']['HOST'] = '/cloudsql/proven-center-186811:europe-west3:mycontact'
+# SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = False
+if not os.getenv('GAE_INSTANCE'):
+    DATABASES['default']['HOST'] = '127.0.0.1'
+    DEBUG = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO'
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -151,16 +187,26 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# GS_BUCKET_NAME = '186811' # the name of the bucket you have created from the google cloud storage console
+# GS_PROJECT_ID = 'proven-center-186811'
+
+# DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+# STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "static"),
+#     ]
+
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
 MEDIA_URL = '/media/'
-# Size for creating thumbnail
+#Size for creating thumbnail
 THUMB_SIZE = (125, 125)
-# Maximum allowed photo size
+#Maximum allowed photo size
 PHOTO_SIZE = 2*1024*1024
-# Default formats for import-export actions
+#Default formats for import-export actions
 DEFAULT_FORMATS_FOR_EXPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX, base_formats.HTML)
 DEFAULT_FORMATS_FOR_IMPORT = (base_formats.CSV, base_formats.XLS, base_formats.XLSX)
-ARCHIVE_FORMAT_FOR_IMPORT = (('zip',), ('tar',), ('tar.gz',),)
 MAX_SIZE_PHOTO_ARCHIVE = 7340032

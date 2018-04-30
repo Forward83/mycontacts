@@ -406,7 +406,7 @@ class ExportContactViewTest(TestCase):
         file_ext = 'csv'
         filename = '{}-{}.{}'.format(_model, _time, file_ext)
         _content = 'attachment; filename = %s' % filename
-        resp = self.client.post(self.url, {'file_format': 0})
+        resp = self.client.post(self.url, {'file_format': 0, 'export_contacts': True})
         self.assertEqual(resp.get('Content-Disposition'), _content)
         exported_data = resp.content.decode('utf-8')
         exported_data = base_formats.CSV.create_dataset(file_format, exported_data)
@@ -429,7 +429,7 @@ class ExportContactViewTest(TestCase):
         file_ext = 'xls'
         filename = '{}-{}.{}'.format(_model, _time, file_ext)
         _content = 'attachment; filename = %s' % filename
-        resp = self.client.post(self.url, {'file_format': 1})
+        resp = self.client.post(self.url, {'file_format': 1, 'export_contacts': True})
         self.assertEqual(resp.get('Content-Disposition'), _content)
         exported_data = resp.content
         exported_data = base_formats.XLS.create_dataset(file_format, exported_data)
@@ -474,7 +474,7 @@ class ExportContactViewTest(TestCase):
         file_ext = 'html'
         filename = '{}-{}.{}'.format(_model, _time, file_ext)
         _content = 'attachment; filename = %s' % filename
-        resp = self.client.post(self.url, {'file_format': 3})
+        resp = self.client.post(self.url, {'file_format': 3, 'export_contacts': True})
         self.assertEqual(resp.get('Content-Disposition'), _content)
         exported_data = resp.content.decode('utf-8')
         soup = BeautifulSoup(exported_data, 'html.parser')

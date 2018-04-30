@@ -1,2 +1,6 @@
-contacts/test/test_views.py:10: [E] PYFLAKES:'django.core.files.File' imported but unused
+contacts/views.py:1: [E] PYFLAKES:'codecs' imported but unused
+contacts/views.py:2: [E] PYFLAKES:'csv' imported but unused
+contacts/forms.py:1: [E] PYFLAKES:'django.forms.inlineformset_factory' imported but unused
+contacts/forms.py:1: [E] PYFLAKES:'django.forms.Form' imported but unused
+contacts/forms.py:1: [E] PYFLAKES:'django.forms.BaseInlineFormSet' imported but unused
 api/models.py:1: [E] PYFLAKES:'django.db.models' imported but unused
