@@ -10,6 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from import_export.formats import base_formats
 from contacts.models import Contact, Profile, ContactPhoto, user_directory_path, Dublicate
 from contacts.views import new_contact, sign_up, remove_contact, export_contacts, import_contacts, dublicate_list
+from contacts.views import ARCHIVE_FORMAT, ZIP
 from contact.settings import BASE_DIR, MEDIA_ROOT
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -412,6 +413,25 @@ class ExportContactViewTest(TestCase):
         exported_data = base_formats.CSV.create_dataset(file_format, exported_data)
         self.assertEqual(exported_data.height, 10)
         self.assertFalse(user2_contact.id in exported_data['id'])
+
+    def test_archive_photo_export(self):
+        for arch_i, archivator in enumerate(ARCHIVE_FORMAT):
+            dir_path = './contacts/fixtures/export files'
+            files = os.listdir(dir_path)
+            for i, file in enumerate(files):
+                mobile = '+380(67)2162478'
+                with open(os.path.join(dir_path, file), 'rb') as img:
+                    photo_field = SimpleUploadedFile(file, img.read())
+                firstname = secondname = lastname = 'test' + str(i)
+                c = Contact(owner=self.user, firstname=firstname,secondname=secondname, lastname=lastname,
+                            mobile=mobile, star=False)
+                c.save()
+                ContactPhoto.objects.create(contact=c, photo=photo_field)
+            filename = '{}.{}'.format('photos', archivator.get_title())
+            _content = 'attachment; filename = {}'.format(filename)
+            resp = self.client.post(self.url, {'file_format': arch_i, 'export_photos': True})
+            # self.assertEqual(resp.get('Content-Disposition'), _content)
+
 
     def test_xls_export_successful(self):
         file_format = base_formats.XLS()
