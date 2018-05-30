@@ -95,25 +95,25 @@ WSGI_APPLICATION = 'contact.wsgi.application'
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL')
-    )
-    #    'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'contacts',
-    #     'USER': 'mycontact',
-    #     'PASSWORD': 'P@ssw0rd123',
-    #     'HOST': '35.198.128.5',   # Or an IP Address that your DB is hosted on
-    #     'PORT': '3306',
+    'default': dj_database_url.config(default=config('DATABASE_URL'))
+       # 'default': {
+       #  'ENGINE': 'django.db.backends.mysql',
+       #  'NAME': 'contacts',
+       #  'USER': 'mycontact',
+       #  'PASSWORD': 'P@ssw0rd123',
+       #  'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+       #  'PORT': '3306',
     # }
-}
+            }
 
-DATABASES['default']['HOST'] = '/cloudsql/proven-center-186811:europe-west3:mycontact'
+# DATABASES['default']['HOST'] = '/cloudsql/my-contacts-205212:europe-west3:mycontacts'
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = False
 if not os.getenv('GAE_INSTANCE'):
     DATABASES['default']['HOST'] = '127.0.0.1'
     DEBUG = True
+else:
+    DATABASES['default']['HOST'] = '/cloudsql/my-contacts-205212:europe-west3:mycontacts'
 
 LOGGING = {
     'version': 1,
@@ -168,22 +168,22 @@ USE_TZ = True
 #     os.path.join(BASE_DIR, "static"),
 # ]
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-# GS_BUCKET_NAME = '186811' # the name of the bucket you have created from the google cloud storage console
+GS_BUCKET_NAME = 'mycontacts_app' # the name of the bucket you have created from the google cloud storage console
 # GS_PROJECT_ID = 'proven-center-186811'
 
-# DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-# STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # STATICFILES_DIRS = [#     os.path.join(BASE_DIR, "static"),
 #     ]
-# STATIC_URL = 'https://storage.googleapis.com/186811/static/'
-# MEDIA_URL = 'https://storage.googleapis.com/186811/'
+STATIC_URL = 'https://storage.googleapis.com/mycontacts_app/static/'
+MEDIA_URL = 'https://storage.googleapis.com/mycontacts_app/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
-MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'contacts/media')
+# MEDIA_URL = '/media/'
 #Size for creating thumbnail
 THUMB_SIZE = (125, 125)
 #Maximum allowed photo size
