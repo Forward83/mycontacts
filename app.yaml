@@ -3,7 +3,7 @@ env: flex
 entrypoint: gunicorn -c gunicorn.conf.py -b :$PORT contact.wsgi
 
 beta_settings:
-    cloud_sql_instances: proven-center-186811:europe-west3:mycontact
+    cloud_sql_instances: my-contacts-205212:europe-west3:contact-app
 
 handlers:
 - url: /static
@@ -11,7 +11,10 @@ handlers:
 
 #[START env]
 env_variables:
-    CLOUD_STORAGE_BUCKET: 186811
+    CLOUD_STORAGE_BUCKET: mycontacts_app
+#    MYSQL_DSN: mysql:unix_socket=/cloudsql/my-contacts-205212:europe-west3:contacts;dbname=contacts
+#    MYSQL_USER: mycontact
+#    MYSQL_PASSWORD: P@ssw0rd123
 #[END env]
 
 runtime_config:

@@ -1,6 +1,7 @@
 import os
 import zipfile, tarfile
 import copy
+import requests
 from io import BytesIO
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
@@ -45,8 +46,8 @@ class ZIP(ArchiveClass):
     def add_to_archive(self, filenames):
         zip_subdir = "photo"
         zip_filename = "%s.zip" % zip_subdir
+        # zip compressor
         b = BytesIO()
-        # The zip compressor
         zf = zipfile.ZipFile(b, mode='w')
 
         for fpath in filenames:
@@ -54,8 +55,9 @@ class ZIP(ArchiveClass):
             fdir, fname = os.path.split(fpath)
             fname = '{}.png'.format(fname.split('_')[0])
             zip_path = os.path.join(zip_subdir, fname)
-            zf.write(fpath, zip_path)
-
+            url = default_storage.url(fpath)
+            file = requests.get(url)
+            zf.writestr(fname, file.content)
         # Must close zip for all contents to be written
         zf.close()
         return b, zip_filename
@@ -90,7 +92,16 @@ class TAR(ArchiveClass):
         for fpath in filenames:
             fdir, fname = os.path.split(fpath)
             fname = '{}.png'.format(fname.split('_')[0])
-            tf.add(fpath, fname)
+            url = default_storage.url(fpath)
+            file = requests.get(url)
+            file_len = len(file.content)
+            b1 = BytesIO()
+            b1.write(file.content)
+            b1.seek(0)
+            tar_info = tarfile.TarInfo(fname)
+            tar_info.size = file_len
+            tf.addfile(tar_info, fileobj=b1)
+            b1.flush()
         tf.close()
         return b, tar_filename
 
@@ -347,6 +358,7 @@ def export_contacts(request):
                 # Get archivator type from choice field
                 choice_num = export_photo_form.cleaned_data.get('file_format')
                 archivator = archive_formats[int(choice_num)]
+                print(archivator)
                 export_photo_form = ExportForm(archive_formats, request.POST)
                 export_photo_form.fields['file_format'].label = "Archive format"
                 query_set = ContactPhoto.objects.filter(contact__owner=request.user)
@@ -358,6 +370,8 @@ def export_contacts(request):
                 filenames_rel = [row for row in line.split('/n') if row]
                 # list of absolute pathes
                 filenames = [os.path.join(MEDIA_ROOT, fpath) for fpath in filenames_rel]
+                # for file in filenames:
+                #     print(file, default_storage.exists(file))
                 in_memory, fname = archivator.add_to_archive(filenames)
                 resp = HttpResponse(in_memory.getvalue(), content_type="application/x-zip-compressed")
                 # ..and correct content-disposition
