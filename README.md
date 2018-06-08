@@ -45,5 +45,6 @@ If you forgot your password, you can change it by reset password link on login f
 ## Deployed version at GAE:
 
 https://my-contacts-205212.appspot.com
+
 https://my-contacts-205212.appspot.com/api/
 
