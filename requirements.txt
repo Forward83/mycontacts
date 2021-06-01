@@ -20,7 +20,7 @@ python-decouple==3.1
 PyYAML==3.12
 requests==2.18.4
 tablib==0.12.1
-urllib3==1.22
+urllib3==1.26.5
 virtualenv==15.1.0
 virtualenv-clone==0.2.6
 virtualenvwrapper==4.8.2
