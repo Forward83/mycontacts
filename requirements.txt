@@ -8,7 +8,7 @@ django-filter==1.1.0
 django-import-export==0.5.1
 django-nose==1.4.5
 djangorestframework==3.7.1
-html5lib==0.999
+html5lib==0.999999999
 httpie==0.9.9
 httplib2==0.9.1
 idna==2.6
